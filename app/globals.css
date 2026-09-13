@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+/*
+ * MeshRun — global theme.
+ * The marketing surface is a committed dark-mode product surface, so the
+ * palette is defined once rather than branching on prefers-color-scheme.
+ */
+:root {
+  color-scheme: dark;
+  --background: #08090b;
+  --foreground: #ededed;
+  --accent: #22d3ee;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+  color: #ffffff;
+}
+
+/* Thin, unobtrusive scrollbars to match the app-like chrome. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #3f3f46;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+}
+
+/* Engineering paper-grid backdrop. */
+.mr-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Landing screen
+ * ------------------------------------------------------------------------- */
+
+/*
+ * Pointer spotlight. The circuit artwork is drawn twice; this masks the bright
+ * copy to a soft circle that trails the cursor. --mx/--my are written straight
+ * to the element from a rAF loop, so tracking never triggers a React render.
+ */
+.mr-spotlight {
+  -webkit-mask-image: radial-gradient(
+    circle 30vmax at var(--mx, 50%) var(--my, 42%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle 30vmax at var(--mx, 50%) var(--my, 42%),
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 42%,
+    transparent 72%
+  );
+}
+
+/*
+ * Fades the circuit artwork out behind the headline. Masking the art keeps the
+ * plate reading as grey, where a dark scrim would just push it back to black.
+ */
+.mr-clear-center {
+  -webkit-mask-image: radial-gradient(
+    ellipse 46% 44% at 50% 50%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 58%,
+    #000 88%
+  );
+  mask-image: radial-gradient(
+    ellipse 46% 44% at 50% 50%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.22) 58%,
+    #000 88%
+  );
+}
+
+/* Parallax layers driven by the same rAF loop. */
+.mr-parallax {
+  translate: var(--px, 0px) var(--py, 0px);
+  will-change: translate;
+}
+
+/* Staged entrance for the landing copy. */
+@keyframes mr-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.mr-enter {
+  animation: mr-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Scroll cue: a slow bob with a glow that breathes in sync. */
+@keyframes mr-bob {
+  0%,
+  100% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.mr-animate-bob {
+  animation: mr-bob 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes mr-cue-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.88);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.15);
+  }
+}
+
+.mr-animate-cue-glow {
+  animation: mr-cue-glow 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* ---------------------------------------------------------------------------
+ * Shared
+ * ------------------------------------------------------------------------- */
+
+@keyframes mr-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+}
+
+.mr-animate-ring {
+  animation: mr-pulse-ring 2.4s ease-out infinite;
+}
+
+@keyframes mr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mr-animate-rise {
+  animation: mr-rise 0.22s ease-out both;
+}
+
+@keyframes mr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mr-animate-fade {
+  animation: mr-fade 0.18s ease-out both;
+}
+
+/*
+ * One blanket rule rather than per-class opt-outs, so nothing added later can
+ * quietly reintroduce motion for people who asked for none.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
