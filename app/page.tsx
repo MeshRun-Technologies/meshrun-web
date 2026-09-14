@@ -1,9 +1,10 @@
 "use client";
 
 import {
+  type CSSProperties,
   type ComponentType,
-  type FormEvent,
   type ReactNode,
+  memo,
   useCallback,
   useEffect,
   useRef,
@@ -11,25 +12,25 @@ import {
 } from "react";
 import {
   ArrowRight,
-  Boxes,
   CheckCircle2,
   ChevronDown,
   Cpu,
   Gauge,
   HardDrive,
-  Keyboard,
   Layers,
   Lock,
   Mail,
   Menu,
   Monitor,
+  Moon,
   MousePointer2,
-  Network,
   Server,
   ShieldCheck,
+  Sun,
   Terminal,
   X,
   Zap,
+  CircleDollarSign,
 } from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
@@ -38,9 +39,8 @@ import {
 
 const NAV_LINKS = [
   { label: "Platform", href: "#platform" },
-  { label: "Performance", href: "#performance" },
-  { label: "Privacy", href: "#privacy" },
-  { label: "Compliance", href: "#byol" },
+  { label: "How it Works", href: "#how" },
+  { label: "Privacy & Compliance", href: "#privacy" },
   { label: "Pricing", href: "#pricing" },
 ] as const;
 
@@ -48,174 +48,83 @@ type Pillar = {
   icon: ComponentType<{ className?: string }>;
   title: string;
   body: string;
-  tags: string[];
 };
 
 const PILLARS: Pillar[] = [
   {
     icon: Layers,
-    title: "Full Windows Toolset Parity",
-    body: "Complete support for ObjectARX extensions, custom LISP routines, MEP toolsets, and 3D rendering engines unavailable on browser viewers or stripped-down macOS ports.",
-    tags: ["ObjectARX", "AutoLISP", "MEP / Plant 3D", "Inventor"],
+    title: "Full Windows Software",
+    body: "Run the real desktop versions of your CAD apps, even on Apple Silicon, without missing features or compatibility bugs.",
   },
   {
     icon: Cpu,
-    title: "Apple Silicon Native Client",
-    body: "Low-level system event hooks pass complex shortcuts (Cmd, Esc, F3, F8) seamlessly. Direct hardware decoding via Apple VideoToolbox preserves battery life and thermal headroom.",
-    tags: ["VideoToolbox", "Metal", "arm64", "6-DoF USB"],
+    title: "Built for Mac First",
+    body: "Designed from the ground up for macOS, so shortcuts, your trackpad, and window management feel natural.",
   },
   {
     icon: HardDrive,
-    title: "Client-Side Data Isolation",
-    body: "Retain full data sovereignty. Mount local Mac directories directly into your active session. Keep sensitive project files and client IP on your local disk with zero mandatory cloud file persistence.",
-    tags: ["Z:\\MacFiles", "Ephemeral nodes", "No cloud retention"],
+    title: "Automatic Saves You Can Trust",
+    body: "Your work automatically saves back to your computer as you go, so you won't lose your progress even if you disconnect.",
   },
   {
     icon: ShieldCheck,
-    title: "Verified BYOL Compliance",
-    body: "Authenticate directly via your enterprise Autodesk Single-User ID inside an isolated, single-tenant ephemeral environment. Fully compliant with major vendor virtualization terms.",
-    tags: ["Named-user auth", "Single-tenant", "Zero resale"],
+    title: "Your Data is Secure",
+    body: "Every session gives you a fresh computer that gets completely wiped the second you leave. No leftover clutter or snooping eyes.",
   },
-];
-
-type Subsystem = {
-  icon: ComponentType<{ className?: string }>;
-  index: string;
-  title: string;
-  body: string;
-  specs: { label: string; value: string }[];
-};
-
-const SUBSYSTEMS: Subsystem[] = [
-  {
-    icon: Monitor,
-    index: "01",
-    title: "Native macOS Client Engine",
-    body: "Built specifically for Apple Silicon. Incoming frames are handed to Apple VideoToolbox for hardware-accelerated decode and composited directly onto a Metal viewport, keeping the CPU idle and the fans off.",
-    specs: [
-      { label: "Decode path", value: "VideoToolbox (hardware)" },
-      { label: "Presentation", value: "Metal viewport, zero-copy" },
-      { label: "Target silicon", value: "Apple M-series, arm64" },
-    ],
-  },
-  {
-    icon: Keyboard,
-    index: "02",
-    title: "Input & Peripheral Pipeline",
-    body: "Low-level OS keyboard hooks forward complex CAD chords to the remote session before macOS can claim them, so Osnap and Ortho behave exactly as they do on a Windows workstation.",
-    specs: [
-      { label: "Pass-through", value: "Cmd · Esc · F3 · F8" },
-      { label: "Peripherals", value: "SpaceMouse, 6-axis" },
-      { label: "Collisions", value: "Hotkey interception" },
-    ],
-  },
-  {
-    icon: Network,
-    index: "03",
-    title: "Display Transport Pipeline",
-    body: "Cloud-agnostic orchestration engineered for NVIDIA RTX Virtual Workstation environments. Frames are captured straight off the GPU frame buffer through hardware NVENC pipelines.",
-    specs: [
-      { label: "Codecs", value: "HEVC / H.265 · AV1" },
-      { label: "Chroma", value: "4:4:4 subsampling" },
-      { label: "Frame rate", value: "60 FPS sustained" },
-    ],
-  },
-  {
-    icon: Lock,
-    index: "04",
-    title: "Client-Side File Privacy Layer",
-    body: "Transparent client-side folder mounting exposes your local Mac directories to the session as a native Windows volume. Compute is streamed; the models never have to leave your disk.",
-    specs: [
-      { label: "Mount point", value: "Z:\\MacFiles" },
-      { label: "Channel", value: "Encrypted, session-scoped" },
-      { label: "Cloud persistence", value: "None required" },
-    ],
-  },
-  {
-    icon: ShieldCheck,
-    index: "05",
-    title: "Licensing Compliance Architecture",
-    body: "100% Bring-Your-Own-License. Sessions authenticate through standard vendor named-user flows inside fully isolated single-tenant environments, strictly respecting software virtualization agreements.",
-    specs: [
-      { label: "Licensing model", value: "BYOL, zero markup" },
-      { label: "Identity", value: "Autodesk Identity" },
-      { label: "Tenancy", value: "Single-tenant, ephemeral" },
-    ],
-  },
-];
-
-const LATENCY_BUDGET = [
-  { label: "GPU frame capture", detail: "NVENC frame-buffer grab", ms: 2.0 },
-  { label: "Encode", detail: "HEVC 4:4:4 hardware encode", ms: 3.5 },
-  { label: "Regional transit", detail: "Encrypted transport RTT", ms: 8.0 },
-  { label: "Decode", detail: "Apple VideoToolbox", ms: 2.5 },
-  { label: "Present", detail: "Metal viewport composite", ms: 1.8 },
-];
-
-const SEGMENT_COLORS = [
-  "bg-cyan-300",
-  "bg-cyan-400",
-  "bg-teal-500",
-  "bg-sky-500",
-  "bg-blue-600",
-];
-
-const TRANSPORT_SPECS = [
-  { label: "Codec support", value: "HEVC (H.265), AV1" },
-  { label: "Chroma subsampling", value: "4:4:4" },
-  { label: "Sustained frame rate", value: "60 FPS" },
-  { label: "Colour depth", value: "8 / 10-bit per channel" },
-  { label: "Capture source", value: "Direct GPU frame buffer" },
-  { label: "Instance class", value: "NVIDIA RTX vWS" },
 ];
 
 const STEPS = [
   {
     icon: Terminal,
     step: "Step 01",
-    title: "Native Client Handshake",
-    body: "Launch the lightweight macOS desktop client from your dock or menu bar. The client negotiates a session with the MeshRun control plane and selects your nearest available region.",
+    title: "Open the app",
+    body: "Launch MeshRun from your Dock. It signs you in and connects to the fastest nearby server automatically.",
+  },
+  {
+    icon: Layers,
+    step: "Step 02",
+    title: "Pick your project",
+    body: "Select from recently opened projects and the CAD program you want to use.",
   },
   {
     icon: Server,
-    step: "Step 02",
-    title: "Ephemeral Node Allocation",
-    body: "Orchestration provisions an isolated GPU compute environment and maps local client storage securely over encrypted channels. Nothing is shared with another tenant.",
+    step: "Step 03",
+    title: "Your cloud PC boots",
+    body: "A dedicated GPU machine starts up just for you, with your chosen folder already open and ready.",
   },
   {
     icon: Zap,
-    step: "Step 03",
-    title: "Low-Latency Production",
-    body: "Authenticate using your existing CAD subscription, draft with uncompromised graphical fidelity, and spin down instances automatically upon disconnect.",
+    step: "Step 04",
+    title: "Get right to work",
+    body: "Your software opens on screen. When you close the window your session ends and your hours stop ticking.",
   },
 ];
 
-const SOFTWARE_OPTIONS = [
-  "Autodesk Revit",
-  "AutoCAD / Civil 3D",
-  "Autodesk Inventor",
-  "Other Tools Under Evaluation",
-] as const;
+/**
+ * Holds the page still behind a dialog. Marking the root also parks the hero
+ * animation loops: a full-screen blurred scrim has to re-rasterise every time
+ * anything underneath it moves, which is what made opening one feel heavy.
+ */
+function useDialogLock(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
 
-const HARDWARE_OPTIONS = [
-  "Apple Silicon M-Series",
-  "Intel Mac",
-  "Low-Spec PC / Thin Client",
-] as const;
+    const root = document.documentElement;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    root.setAttribute("data-dialog", "");
 
-const TEAM_SIZES = [
-  "Solo / Freelancer",
-  "2–10 Engineers",
-  "11–50 Engineers",
-  "50+ Enterprise",
-] as const;
+    return () => {
+      document.body.style.overflow = previous;
+      root.removeAttribute("data-dialog");
+    };
+  }, [active]);
+}
 
-const TRUST_MARKERS = [
-  "Single-tenant ephemeral nodes",
-  "Bring-Your-Own-License",
-  "No mandatory cloud file retention",
-  "Encrypted session transport",
-];
+/** True while a dialog owns the screen. */
+function dialogOpen() {
+  return document.documentElement.hasAttribute("data-dialog");
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Primitives                                                                */
@@ -223,19 +132,17 @@ const TRUST_MARKERS = [
 
 function Wordmark({ className = "text-[15px]" }: { className?: string }) {
   return (
-    <span className={`font-bold tracking-tight text-white ${className}`}>
+    <span className={`font-bold tracking-tight text-ink ${className}`}>
       MeshRun
     </span>
   );
 }
 
 function SectionHeading({
-  eyebrow,
   title,
   lead,
   align = "left",
 }: {
-  eyebrow: string;
   title: ReactNode;
   lead?: string;
   align?: "left" | "center";
@@ -244,31 +151,326 @@ function SectionHeading({
 
   return (
     <div className={centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
-      <div
-        className={`flex items-center gap-2 ${centered ? "justify-center" : ""}`}
-      >
-        <span className="h-px w-6 bg-cyan-400/60" />
-        <span className="font-mono text-[11px] tracking-[0.18em] text-cyan-400 uppercase">
-          {eyebrow}
-        </span>
-      </div>
-      <h2 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
+      <h2 className="text-3xl font-semibold tracking-tight text-balance text-ink sm:text-4xl">
         {title}
       </h2>
       {lead ? (
-        <p className="mt-4 text-[15px] leading-relaxed text-neutral-400">
-          {lead}
-        </p>
+        <p className="mt-4 text-[15px] leading-relaxed text-ink-body">{lead}</p>
       ) : null}
     </div>
   );
 }
 
-function MonoTag({ children }: { children: ReactNode }) {
+/* -------------------------------------------------------------------------- */
+/*  Cursor, theme and menu                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A dot that tracks the pointer exactly and a ring that trails it, swelling
+ * over anything clickable. Position is written straight to the elements from a
+ * rAF loop, so React never renders on mouse move. Coarse pointers get nothing,
+ * and text fields keep the native caret.
+ */
+const CustomCursor = memo(function CustomCursor() {
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    if (!dot || !ring) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const root = document.documentElement;
+    root.classList.add("mr-cursor-active");
+
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let ringX = targetX;
+    let ringY = targetY;
+    let frame = 0;
+    let visible = false;
+    let absorbBox: DOMRect | null = null;
+
+    const tick = () => {
+      const toX = absorbBox ? absorbBox.left + absorbBox.width / 2 : targetX;
+      const toY = absorbBox ? absorbBox.top + absorbBox.height / 2 : targetY;
+      ringX += (toX - ringX) * 0.18;
+      ringY += (toY - ringY) * 0.18;
+      dot.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+      ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+      frame =
+        Math.abs(toX - ringX) > 0.1 || Math.abs(toY - ringY) > 0.1
+          ? requestAnimationFrame(tick)
+          : 0;
+    };
+
+    const onMove = (event: PointerEvent) => {
+      targetX = event.clientX;
+      targetY = event.clientY;
+      if (!visible) {
+        visible = true;
+        dot.style.opacity = "1";
+        ring.style.opacity = "1";
+      }
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+
+    // Controls swallow the cursor: the ring morphs to the control's box, sits on
+    // it, and the control takes the cursor's colour until you leave.
+    let absorbed: HTMLElement | null = null;
+
+    const release = () => {
+      if (absorbed) absorbed.classList.remove("mr-absorbed");
+      absorbed = null;
+      ring.dataset.absorbed = "false";
+      ring.style.width = "";
+      ring.style.height = "";
+      ring.style.margin = "";
+      ring.style.borderRadius = "";
+      dot.style.opacity = visible ? "1" : "0";
+    };
+
+    const onOver = (event: Event) => {
+      const el = event.target as Element | null;
+      const control = el?.closest?.(
+        'button:not([data-no-absorb]), a[data-absorb], [data-cursor="absorb"]',
+      ) as HTMLElement | null;
+
+      if (control) {
+        if (control !== absorbed) {
+          if (absorbed) absorbed.classList.remove("mr-absorbed");
+          absorbed = control;
+          control.classList.add("mr-absorbed");
+        }
+        const box = control.getBoundingClientRect();
+        ring.dataset.absorbed = "true";
+        ring.dataset.hot = "false";
+        ring.style.width = `${box.width}px`;
+        ring.style.height = `${box.height}px`;
+        ring.style.margin = `${-box.height / 2}px 0 0 ${-box.width / 2}px`;
+        ring.style.borderRadius = getComputedStyle(control).borderRadius;
+        dot.style.opacity = "0";
+        absorbBox = box;
+        return;
+      }
+
+      if (absorbed) release();
+      absorbBox = null;
+      ring.dataset.hot = el?.closest?.(
+        'a, button, [role="button"], input, select, textarea, [data-cursor="hot"]',
+      )
+        ? "true"
+        : "false";
+    };
+
+    const onLeave = () => {
+      visible = false;
+      dot.style.opacity = "0";
+      ring.style.opacity = "0";
+      absorbBox = null;
+      if (absorbed) {
+        absorbed.classList.remove("mr-absorbed");
+        absorbed = null;
+      }
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerover", onOver, { passive: true });
+    window.addEventListener("pointerleave", onLeave, { passive: true });
+    window.addEventListener("blur", onLeave);
+
+    return () => {
+      if (absorbed) absorbed.classList.remove("mr-absorbed");
+      root.classList.remove("mr-cursor-active");
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerover", onOver);
+      window.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("blur", onLeave);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <span className="rounded border border-neutral-800 bg-neutral-900/80 px-1.5 py-0.5 font-mono text-[10px] tracking-tight text-neutral-400">
-      {children}
-    </span>
+    <>
+      <div ref={dotRef} className="mr-cursor-dot" aria-hidden="true" />
+      <div ref={ringRef} className="mr-cursor-ring" aria-hidden="true" />
+    </>
+  );
+});
+
+/**
+ * Toggles the theme by swapping one attribute on <html>. Which icon shows is
+ * decided in CSS from that same attribute, so this holds no React state and
+ * cannot disagree with what the pre-paint script already put on the page.
+ */
+function ThemeToggle({ className = "" }: { className?: string }) {
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const spinning = useRef(false);
+
+  const toggle = () => {
+    const root = document.documentElement;
+    const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+
+    const commit = () => {
+      root.setAttribute("data-theme", next);
+      try {
+        localStorage.setItem("mr-theme", next);
+      } catch {
+        /* private mode: the choice just does not persist */
+      }
+    };
+
+    const icon = iconRef.current;
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (!icon || reduced || spinning.current) {
+      commit();
+      return;
+    }
+
+    // The swap lands while the icon is scaled to a point, so one shape appears
+    // to turn into the other rather than cutting.
+    spinning.current = true;
+    icon.classList.remove("mr-swap");
+    void icon.offsetWidth;
+    icon.classList.add("mr-swap");
+    window.setTimeout(commit, 300);
+    window.setTimeout(() => {
+      icon.classList.remove("mr-swap");
+      spinning.current = false;
+    }, 640);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Switch between light and dark"
+      className={`border-hairline text-ink-body hover:border-hairline-strong hover:text-ink flex h-9 w-9 items-center justify-center rounded-lg border transition-colors duration-200 ${className}`}
+    >
+      <span ref={iconRef} className="grid place-items-center">
+        <Moon className="mr-when-light h-4 w-4" />
+        <Sun className="mr-when-dark h-4 w-4" />
+      </span>
+    </button>
+  );
+}
+
+/**
+ * Full-screen menu. The panel wipes down from the top edge and the links rise
+ * in behind it on a stagger, so opening reads as one gesture rather than a
+ * list appearing.
+ */
+function FullscreenMenu({
+  open,
+  closing,
+  onClose,
+  onRequestAccess,
+}: {
+  open: boolean;
+  closing: boolean;
+  onClose: () => void;
+  onRequestAccess: () => void;
+}) {
+  useDialogLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className={`bg-surface fixed inset-0 z-50 flex flex-col ${
+        closing ? "mr-veil-out pointer-events-none" : "mr-veil"
+      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+    >
+      <div className="mr-grid pointer-events-none absolute inset-0 opacity-60" />
+
+      <div className="relative mx-auto flex h-16 w-full max-w-7xl shrink-0 items-center justify-between px-5 sm:px-8">
+        <Wordmark className="text-[17px]" />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="border-hairline text-ink-body hover:border-hairline-strong hover:text-ink flex h-9 w-9 items-center justify-center rounded-lg border transition-colors duration-200"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <nav className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-5 sm:px-8">
+        <ul className="flex flex-col">
+          {NAV_LINKS.map((link, i) => (
+            <li
+              key={link.href}
+              className={`border-hairline border-b ${
+                closing ? "mr-veil-item-out" : "mr-veil-item"
+              }`}
+              style={{
+                animationDelay: closing
+                  ? `${(NAV_LINKS.length - 1 - i) * 38}ms`
+                  : `${160 + i * 70}ms`,
+              }}
+            >
+              <a
+                href={link.href}
+                onClick={onClose}
+                className="group text-ink-muted hover:text-ink flex items-baseline justify-between gap-6 py-5 transition-colors duration-300 sm:py-7"
+              >
+                <span className="text-[clamp(1.9rem,6vw,4rem)] leading-none font-semibold tracking-[-0.03em]">
+                  {link.label}
+                </span>
+                <ArrowRight className="text-accent h-5 w-5 shrink-0 -translate-x-3 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div
+          className={`mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${
+            closing ? "mr-veil-item-out" : "mr-veil-item"
+          }`}
+          style={{
+            animationDelay: closing
+              ? "0ms"
+              : `${160 + NAV_LINKS.length * 70}ms`,
+          }}
+        >
+          <a
+            href="mailto:info@meshrun.co"
+            className="text-ink-muted hover:text-ink text-sm transition-colors duration-200"
+          >
+            info@meshrun.co
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onRequestAccess();
+            }}
+            className="bg-inverse text-inverse-ink hover:bg-inverse-hover mr-glow-hover group flex h-12 items-center justify-center gap-2 rounded-xl px-7 text-sm font-semibold transition-colors duration-200"
+          >
+            Request Early Access
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </button>
+        </div>
+      </nav>
+    </div>
   );
 }
 
@@ -276,29 +478,29 @@ function MonoTag({ children }: { children: ReactNode }) {
 /*  Navigation                                                                */
 /* -------------------------------------------------------------------------- */
 
-function NavBar({
+const NavBar = memo(function NavBar({
   onRequestAccess,
   visible,
+  onOpenMenu,
 }: {
   onRequestAccess: () => void;
   visible: boolean;
+  onOpenMenu: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 border-b transition-[translate,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
         visible
-          ? "translate-y-0 border-neutral-800/80 bg-neutral-950/80 opacity-100 backdrop-blur-xl"
+          ? "border-hairline/80 bg-void/80 translate-y-0 opacity-100 backdrop-blur-xl"
           : "pointer-events-none -translate-y-full border-transparent opacity-0"
       }`}
     >
       <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-5 sm:px-8">
         <a
           href="#top"
-          className="text-[17px] font-bold tracking-tight text-white transition-opacity duration-200 hover:opacity-70"
+          className="rounded-sm transition-opacity duration-200 hover:opacity-70"
         >
-          MeshRun
+          <Wordmark className="text-[17px]" />
         </a>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -306,66 +508,37 @@ function NavBar({
             <a
               key={link.href}
               href={link.href}
-              className="group relative px-3 py-2 text-[13px] font-medium text-neutral-400 transition-colors duration-200 hover:text-white"
+              className="group text-ink-body hover:text-ink relative px-3 py-2 text-[13px] font-medium transition-colors duration-200"
             >
               {link.label}
-              <span className="absolute inset-x-3 bottom-1 h-px origin-left scale-x-0 bg-linear-to-r from-cyan-400 to-teal-300 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100" />
+              <span className="from-accent to-accent-alt absolute inset-x-3 bottom-1 h-px origin-left scale-x-0 bg-linear-to-r transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100" />
             </a>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button
             type="button"
             onClick={onRequestAccess}
-            className="group hidden items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-[13px] font-semibold text-neutral-950 transition-shadow duration-200 hover:shadow-[0_0_24px_-6px_rgba(34,211,238,0.6)] sm:flex"
+            className="bg-inverse text-inverse-ink mr-glow-hover group hidden items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold sm:flex"
           >
             Request Early Access
             <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
           <button
             type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            className="rounded-md border border-neutral-800 p-2 text-neutral-400 transition-colors hover:border-neutral-700 hover:text-white lg:hidden"
+            onClick={onOpenMenu}
+            aria-label="Open menu"
+            className="border-hairline text-ink-body hover:border-hairline-strong hover:text-ink flex h-9 w-9 items-center justify-center rounded-lg border transition-colors duration-200 lg:hidden"
           >
-            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            <Menu className="h-4 w-4" />
           </button>
         </div>
       </nav>
-
-      {/* Tied to `visible` so the panel cannot linger over the landing screen. */}
-      {visible && menuOpen ? (
-        <div className="border-t border-neutral-800 bg-neutral-950 px-5 py-3 lg:hidden">
-          <div className="flex flex-col">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-md px-2 py-2.5 text-sm text-neutral-300 transition-colors hover:bg-neutral-900 hover:text-white"
-              >
-                {link.label}
-              </a>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                onRequestAccess();
-              }}
-              className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-white px-3.5 py-2.5 text-sm font-semibold text-neutral-950"
-            >
-              Request Early Access
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      ) : null}
     </header>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Landing screen                                                            */
@@ -378,21 +551,26 @@ const HOOK = "The workstation era is over.";
  *
  * The marks below are our own geometric drawings and the colours are accents
  * only — MeshRun ships no Autodesk logo artwork or brand typefaces. Product
- * names are used nominatively, to state what MeshRun runs. To swap in licensed
- * artwork later, replace `mark` on the entry; nothing else needs to change.
+ * names are used nominatively, to state what MeshRun runs.
  */
 type CadProduct = {
   name: string;
+  /** Identity colour on the dark sheet. */
   color: string;
-  /** Per-product typographic treatment, standing in for the brand typeface. */
+  /** The same identity stepped down so it stays legible on the light sheet. */
+  colorLight: string;
   type: string;
   mark: ReactNode;
 };
+
+/** Dwell per product. Long enough to read, short enough to notice it move. */
+const CYCLE_MS = 3000;
 
 const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "AutoCAD",
     color: "#F05340",
+    colorLight: "#C7341F",
     type: "font-semibold tracking-[-0.02em]",
     mark: (
       <>
@@ -404,6 +582,7 @@ const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "Fusion",
     color: "#F5983B",
+    colorLight: "#B96A0C",
     type: "font-medium tracking-[0.01em]",
     mark: (
       <>
@@ -415,6 +594,7 @@ const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "Revit",
     color: "#4BA9E2",
+    colorLight: "#1E6FA8",
     type: "font-semibold tracking-[-0.01em]",
     mark: (
       <>
@@ -426,6 +606,7 @@ const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "Inventor",
     color: "#37BFA8",
+    colorLight: "#0F7A6B",
     type: "font-medium tracking-[-0.015em]",
     mark: (
       <>
@@ -437,6 +618,7 @@ const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "Civil 3D",
     color: "#93C83E",
+    colorLight: "#5A7F1A",
     type: "font-semibold tracking-[0em]",
     mark: (
       <>
@@ -449,6 +631,7 @@ const CAD_PRODUCTS: CadProduct[] = [
   {
     name: "3ds Max",
     color: "#8F7BF5",
+    colorLight: "#5A45C4",
     type: "font-bold tracking-[-0.025em]",
     mark: (
       <>
@@ -459,330 +642,1079 @@ const CAD_PRODUCTS: CadProduct[] = [
   },
 ];
 
-const CYCLE_MS = 2600;
-
-/**
- * Cycles the product name in "Run ___ on anything".
- *
- * The slot width is written directly to the DOM from the active label's
- * measured width, so the surrounding words glide rather than snap, and the
- * measurement survives the web-font swap via ResizeObserver.
- */
-function ProductCycler() {
-  const [index, setIndex] = useState(0);
-  const slotRef = useRef<HTMLSpanElement>(null);
-  const labelRefs = useRef<Array<HTMLSpanElement | null>>([]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setIndex((current) => (current + 1) % CAD_PRODUCTS.length);
-    }, CYCLE_MS);
-    return () => window.clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    const slot = slotRef.current;
-    const label = labelRefs.current[index];
-    if (!slot || !label) return;
-
-    const measure = () => {
-      slot.style.width = `${label.getBoundingClientRect().width}px`;
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(label);
-    return () => observer.disconnect();
-  }, [index]);
-
-  return (
-    <>
-      <span className="sr-only">
-        Run {CAD_PRODUCTS.map((product) => product.name).join(", ")} on anything.
-      </span>
-      <span
-        ref={slotRef}
-        aria-hidden="true"
-        className="relative inline-flex h-[1.3em] shrink-0 items-center justify-center transition-[width] duration-[650ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-      >
-        {CAD_PRODUCTS.map((product, i) => {
-          const active = i === index;
-          return (
-            <span
-              key={product.name}
-              ref={(node) => {
-                labelRefs.current[i] = node;
-              }}
-              // Both axes must come from classes: an inline `translate` would
-              // replace the whole property and kill the vertical transition.
-              className={`absolute top-1/2 left-1/2 flex items-center gap-[0.34em] whitespace-nowrap transition-[opacity,translate,filter] duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${product.type} ${
-                active
-                  ? "-translate-x-1/2 -translate-y-1/2 opacity-100 blur-0"
-                  : "-translate-x-1/2 -translate-y-[26%] opacity-0 blur-[4px]"
-              }`}
-              style={{ color: product.color }}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                className="h-[0.82em] w-[0.82em] shrink-0"
-              >
-                {product.mark}
-              </svg>
-              {product.name}
-            </span>
-          );
-        })}
-      </span>
-    </>
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 
-/** Deterministic PRNG so the artwork is identical on server and client. */
-function seeded(seed: number) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-const CIRCUIT_W = 1600;
-const CIRCUIT_H = 900;
-
 /**
- * PCB-style routing: orthogonal and 45-degree traces snapped to a grid, with
- * vias at the ends and a scattering of component pads and radii.
+ * Lights the grid under the pointer. Local coordinates are resolved inside the
+ * rAF callback so the pointer handler never forces a layout.
  */
-const CIRCUIT = (() => {
-  const rand = seeded(20260913);
-  const step = 40;
-  const traces: string[] = [];
-  const vias: { x: number; y: number }[] = [];
-  const pads: { x: number; y: number; w: number; h: number }[] = [];
-  const arcs: string[] = [];
-
-  const snap = (value: number, max: number) =>
-    Math.max(-2 * step, Math.min(max + 2 * step, Math.round(value / step) * step));
-
-  for (let i = 0; i < 30; i += 1) {
-    let x = snap(rand() * CIRCUIT_W, CIRCUIT_W);
-    let y = snap(rand() * CIRCUIT_H, CIRCUIT_H);
-    const parts = [`M${x} ${y}`];
-    vias.push({ x, y });
-
-    const segments = 3 + Math.floor(rand() * 4);
-    for (let s = 0; s < segments; s += 1) {
-      const roll = rand();
-      const sign = rand() < 0.5 ? -1 : 1;
-      const length = (1 + Math.floor(rand() * 4)) * step;
-
-      if (roll < 0.4) {
-        x = snap(x + length * sign, CIRCUIT_W);
-      } else if (roll < 0.78) {
-        y = snap(y + length * sign, CIRCUIT_H);
-      } else {
-        const diagonal = Math.min(length, 2 * step);
-        x = snap(x + diagonal * sign, CIRCUIT_W);
-        y = snap(y + diagonal * (rand() < 0.5 ? -1 : 1), CIRCUIT_H);
-      }
-      parts.push(`L${x} ${y}`);
-    }
-
-    traces.push(parts.join(" "));
-    vias.push({ x, y });
-  }
-
-  for (let i = 0; i < 16; i += 1) {
-    pads.push({
-      x: snap(rand() * CIRCUIT_W, CIRCUIT_W),
-      y: snap(rand() * CIRCUIT_H, CIRCUIT_H),
-      w: step * (1 + Math.floor(rand() * 3)),
-      h: step,
-    });
-  }
-
-  for (let i = 0; i < 7; i += 1) {
-    const cx = snap(rand() * CIRCUIT_W, CIRCUIT_W);
-    const cy = snap(rand() * CIRCUIT_H, CIRCUIT_H);
-    const r = step * (2 + Math.floor(rand() * 3));
-    arcs.push(`M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx} ${cy - r}`);
-  }
-
-  return { traces, vias, pads, arcs };
-})();
-
-function CircuitArt({ className }: { className: string }) {
-  return (
-    <svg
-      viewBox={`0 0 ${CIRCUIT_W} ${CIRCUIT_H}`}
-      preserveAspectRatio="xMidYMid slice"
-      className={`h-full w-full ${className}`}
-      aria-hidden="true"
-    >
-      <g fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round">
-        {CIRCUIT.traces.map((d, i) => (
-          <path key={`t-${i}`} d={d} />
-        ))}
-        {CIRCUIT.arcs.map((d, i) => (
-          <path key={`a-${i}`} d={d} strokeDasharray="5 6" />
-        ))}
-        {CIRCUIT.pads.map((pad, i) => (
-          <rect
-            key={`p-${i}`}
-            x={pad.x}
-            y={pad.y}
-            width={pad.w}
-            height={pad.h}
-            rx="3"
-          />
-        ))}
-      </g>
-      <g fill="currentColor">
-        {CIRCUIT.vias.map((via, i) => (
-          <circle key={`v-${i}`} cx={via.x} cy={via.y} r="3.2" />
-        ))}
-      </g>
-    </svg>
-  );
-}
-
-/**
- * Circuit backdrop with a cursor-tracking spotlight and a little parallax.
- *
- * Pointer position is lerped in a rAF loop and written to CSS custom
- * properties, so the trail stays smooth without re-rendering React on move.
- */
-function CircuitBackdrop() {
-  const rootRef = useRef<HTMLDivElement>(null);
+const GridGlow = memo(function GridGlow({
+  className = "",
+}: {
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const el = ref.current;
+    if (!el) return;
 
-    let targetX = 0.5;
-    let targetY = 0.42;
-    let currentX = 0.5;
-    let currentY = 0.42;
+    let clientX = -9999;
+    let clientY = -9999;
     let frame = 0;
 
-    const tick = () => {
-      currentX += (targetX - currentX) * 0.085;
-      currentY += (targetY - currentY) * 0.085;
-
-      root.style.setProperty("--mx", `${(currentX * 100).toFixed(2)}%`);
-      root.style.setProperty("--my", `${(currentY * 100).toFixed(2)}%`);
-      root.style.setProperty("--px", `${((currentX - 0.5) * -28).toFixed(2)}px`);
-      root.style.setProperty("--py", `${((currentY - 0.5) * -20).toFixed(2)}px`);
-
-      frame =
-        Math.abs(targetX - currentX) > 0.0004 ||
-        Math.abs(targetY - currentY) > 0.0004
-          ? requestAnimationFrame(tick)
-          : 0;
+    const apply = () => {
+      frame = 0;
+      if (dialogOpen()) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--gx", `${clientX - r.left}px`);
+      el.style.setProperty("--gy", `${clientY - r.top}px`);
     };
 
-    const onPointerMove = (event: PointerEvent) => {
-      targetX = event.clientX / window.innerWidth;
-      targetY = event.clientY / window.innerHeight;
-      if (!frame) frame = requestAnimationFrame(tick);
+    const onMove = (event: PointerEvent) => {
+      clientX = event.clientX;
+      clientY = event.clientY;
+      if (!frame) frame = requestAnimationFrame(apply);
     };
 
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointermove", onMove, { passive: true });
     return () => {
-      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointermove", onMove);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
   return (
-    <div ref={rootRef} className="absolute inset-0 bg-[#16181d]" aria-hidden="true">
-      {/* Lit plate, so the panel reads as grey rather than as another black band. */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_68%_at_50%_44%,rgba(60,67,79,0.78),transparent_74%)]" />
-      <div className="mr-grid absolute inset-0 opacity-70" />
+    <div ref={ref} className={`mr-grid-glow ${className}`} aria-hidden="true" />
+  );
+});
+
+/**
+ * Cycles the product name inside a fixed-width pill. The pill is sized once to
+ * the longest entry so it never resizes; only its contents change, rising and
+ * sharpening into place.
+ */
+const ProductCycler = memo(function ProductCycler() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = window.setInterval(
+      () => setIndex((i) => (i + 1) % CAD_PRODUCTS.length),
+      CYCLE_MS,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
+  const product = CAD_PRODUCTS[index];
+  const widest = CAD_PRODUCTS.reduce((a, b) =>
+    a.name.length >= b.name.length ? a : b,
+  );
+
+  return (
+    <>
+      <span className="sr-only">
+        Run {CAD_PRODUCTS.map((p) => p.name).join(", ")} on anything.
+      </span>
+
+      <span
+        aria-hidden="true"
+        className="border-hairline bg-raised/70 inline-grid shrink-0 items-center rounded-full border px-[0.62em] py-[0.18em] align-middle text-[0.82em] backdrop-blur-sm"
+      >
+        {/* Holds the pill at the width of the longest name, for good. */}
+        <span
+          className={`invisible col-start-1 row-start-1 flex items-center gap-[0.34em] whitespace-nowrap ${widest.type}`}
+        >
+          <span className="h-[0.82em] w-[0.82em]" />
+          {widest.name}
+        </span>
+
+        <span
+          key={index}
+          className={`mr-product mr-pill-in col-start-1 row-start-1 flex items-center justify-center gap-[0.34em] whitespace-nowrap ${product.type}`}
+          style={
+            {
+              "--pc": product.color,
+              "--pcl": product.colorLight,
+            } as CSSProperties
+          }
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="h-[0.82em] w-[0.82em] shrink-0"
+          >
+            {product.mark}
+          </svg>
+          {product.name}
+        </span>
+      </span>
+    </>
+  );
+});
+
+/* -------------------------------------------------------------------------- */
+/*  Drawing sheet                                                             */
+/* -------------------------------------------------------------------------- */
+
+const TAU = Math.PI * 2;
+
+/** A full circle as a path, so every mark on the sheet is one primitive. */
+function circle(cx: number, cy: number, r: number) {
+  return `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 ${-r * 2} 0`;
+}
+
+function polygon(cx: number, cy: number, r: number, sides: number, turn = 0) {
+  const pts: string[] = [];
+  for (let i = 0; i < sides; i += 1) {
+    const a = turn + (i / sides) * TAU;
+    pts.push(
+      `${(cx + Math.cos(a) * r).toFixed(1)} ${(cy + Math.sin(a) * r).toFixed(1)}`,
+    );
+  }
+  return `M${pts.join("L")}Z`;
+}
+
+function rect(x: number, y: number, w: number, h: number) {
+  return `M${x} ${y}h${w}v${h}h${-w}Z`;
+}
+
+/** 45° section hatching clipped to a rectangle. */
+function hatch(x: number, y: number, w: number, h: number, step = 10) {
+  const out: string[] = [];
+  for (let d = -h; d < w; d += step) {
+    const t1 = Math.max(0, -d);
+    const t2 = Math.min(h, w - d);
+    if (t2 <= t1) continue;
+    out.push(
+      `M${(x + d + t1).toFixed(1)} ${(y + t1).toFixed(1)}L${(x + d + t2).toFixed(1)} ${(y + t2).toFixed(1)}`,
+    );
+  }
+  return out;
+}
+
+/** Centre-lines crossing a feature, drawn long in the drafting convention. */
+function centre(cx: number, cy: number, r: number) {
+  return [`M${cx - r} ${cy}H${cx + r}`, `M${cx} ${cy - r}V${cy + r}`];
+}
+
+/** A horizontal obround, the shape a milled slot leaves. */
+function slotH(cx: number, cy: number, len: number, r: number) {
+  const d = len / 2 - r;
+  return `M${cx - d} ${cy - r}h${d * 2}a${r} ${r} 0 0 1 0 ${r * 2}h${-d * 2}a${r} ${r} 0 0 1 0 ${-r * 2}Z`;
+}
+
+/** A vertical obround. */
+function slotV(cx: number, cy: number, len: number, r: number) {
+  const d = len / 2 - r;
+  return `M${cx - r} ${cy - d}a${r} ${r} 0 0 1 ${r * 2} 0v${d * 2}a${r} ${r} 0 0 1 ${-r * 2} 0Z`;
+}
+
+/** The small cross that marks an arc centre a dimension is measured from. */
+function mark(x: number, y: number, r = 6) {
+  return [`M${x - r} ${y}h${r * 2}`, `M${x} ${y - r}v${r * 2}`];
+}
+
+/**
+ * A dimension keyed to the feature it measures. `at` is the point on the part
+ * the pointer has to approach; `inner` marks the ones that only make sense once
+ * the part has been opened up.
+ */
+type Dim = {
+  paths: string[];
+  at: [number, number];
+  inner: boolean;
+};
+
+/** Arrowhead length and half-width. */
+const ARROW = 7.5;
+const BARB = 3.1;
+/** Below this the arrows will not fit between the extension lines. */
+const ARROW_ROOM = 24;
+/** How far the extension line runs past the dimension line. */
+const OVERRUN = 9;
+
+/**
+ * A linear dimension, drawn the way a drawing office would.
+ *
+ * The extension lines start on the feature itself, with no gap, and overrun the
+ * dimension line. Arrowheads land on those extension lines; when the measured
+ * span is too tight to hold them they flip outside and point back in, and the
+ * dimension line grows tails for them to sit on. `centres` marks the arc
+ * centres a dimension is taken from, so a slot or a bolt circle says what it is
+ * actually measuring.
+ */
+function dimH(
+  x1: number,
+  x2: number,
+  y: number,
+  from: number,
+  inner = false,
+  centres: [number, number][] = [],
+): Dim {
+  const stop = y < from ? y - OVERRUN : y + OVERRUN;
+  const tight = Math.abs(x2 - x1) < ARROW_ROOM;
+  const tail = ARROW * 2.2;
+  const head = (x: number, dir: number) =>
+    `M${x + ARROW * dir} ${y - BARB}L${x} ${y}L${x + ARROW * dir} ${y + BARB}`;
+  return {
+    paths: [
+      `M${x1} ${from}V${stop}`,
+      `M${x2} ${from}V${stop}`,
+      tight ? `M${x1 - tail} ${y}H${x2 + tail}` : `M${x1} ${y}H${x2}`,
+      head(x1, tight ? -1 : 1),
+      head(x2, tight ? 1 : -1),
+      ...centres.flatMap(([mx, my]) => mark(mx, my)),
+    ],
+    at: [(x1 + x2) / 2, from],
+    inner,
+  };
+}
+
+function dimV(
+  y1: number,
+  y2: number,
+  x: number,
+  from: number,
+  inner = false,
+  centres: [number, number][] = [],
+): Dim {
+  const stop = x < from ? x - OVERRUN : x + OVERRUN;
+  const tight = Math.abs(y2 - y1) < ARROW_ROOM;
+  const tail = ARROW * 2.2;
+  const head = (y: number, dir: number) =>
+    `M${x - BARB} ${y + ARROW * dir}L${x} ${y}L${x + BARB} ${y + ARROW * dir}`;
+  return {
+    paths: [
+      `M${from} ${y1}H${stop}`,
+      `M${from} ${y2}H${stop}`,
+      tight ? `M${x} ${y1 - tail}V${y2 + tail}` : `M${x} ${y1}V${y2}`,
+      head(y1, tight ? -1 : 1),
+      head(y2, tight ? 1 : -1),
+      ...centres.flatMap(([mx, my]) => mark(mx, my)),
+    ],
+    at: [from, (y1 + y2) / 2],
+    inner,
+  };
+}
+
+type BBox = readonly [number, number, number, number];
+
+type Drawing = {
+  /** Filled silhouette, holes punched with evenodd. What you see at rest. */
+  solid: string;
+  /** The linework underneath, revealed by moving onto the part. */
+  paths: string[];
+  hidden: string[];
+  bbox: BBox;
+  dims: Dim[];
+};
+
+/** Zero when the point is inside the box, otherwise the distance to its edge. */
+function bboxDist(b: BBox, x: number, y: number) {
+  const dx = Math.max(b[0] - x, 0, x - b[2]);
+  const dy = Math.max(b[1] - y, 0, y - b[3]);
+  return Math.hypot(dx, dy);
+}
+
+/**
+ * Fourteen real drawings scattered across the sheet: a bolted flange, a
+ * section, a hex nut, a bearing, a stepped shaft, a slotted plate, a
+ * countersink detail, an angle bracket, a door opening, a spur gear, a welded
+ * tee, a square tube, a pillow block and a bolted truss node.
+ */
+const SHEET: Drawing[] = (() => {
+  const out: Drawing[] = [];
+
+  // Bolted flange.
+  {
+    const cx = 228;
+    const cy = 166;
+    const R = 96;
+    const bolt = 66;
+    const holes: string[] = [];
+    const seats: [number, number][] = [];
+    for (let i = 0; i < 6; i += 1) {
+      const a = (i / 6) * TAU - Math.PI / 2;
+      const hx = cx + Math.cos(a) * bolt;
+      const hy = cy + Math.sin(a) * bolt;
+      holes.push(circle(hx, hy, 11));
+      seats.push([hx, hy]);
+    }
+    out.push({
+      solid: [circle(cx, cy, R), circle(cx, cy, 32), ...holes].join(""),
+      paths: [
+        circle(cx, cy, R),
+        circle(cx, cy, 32),
+        ...holes,
+        ...centre(cx, cy, R + 18),
+      ],
+      hidden: [circle(cx, cy, bolt)],
+      bbox: [cx - R, cy - R, cx + R, cy + R],
+      dims: [
+        dimH(cx - R, cx + R, cy + R + 46, cy),
+        // Bolt circle, taken centre to centre off the top and bottom holes.
+        dimV(cy - bolt, cy + bolt, cx - R - 44, cx, true, [seats[0], seats[3]]),
+        dimV(cy - 32, cy + 32, cx + R + 44, cx, true),
+      ],
+    });
+  }
+
+  // Section through a bearing block.
+  {
+    const x = 360;
+    const y = 392;
+    const w = 128;
+    const h = 92;
+    out.push({
+      solid: rect(x, y, w, h),
+      paths: [
+        rect(x, y, w, h),
+        `M${x + 34} ${y}v${h}M${x + w - 34} ${y}v${h}`,
+        ...hatch(x, y, 34, h),
+        ...hatch(x + w - 34, y, 34, h),
+      ],
+      hidden: [`M${x + 34} ${y + 30}h${w - 68}M${x + 34} ${y + 62}h${w - 68}`],
+      bbox: [x, y, x + w, y + h],
+      dims: [
+        dimH(x, x + w, y + h + 42, y + h),
+        dimV(y, y + h, x + w + 34, x + w),
+        dimH(x, x + 34, y - 34, y, true),
+      ],
+    });
+  }
+
+  // Hex nut.
+  {
+    const cx = 1284;
+    const cy = 172;
+    const r = 56;
+    const flat = r * Math.cos(Math.PI / 6);
+    out.push({
+      solid: polygon(cx, cy, r, 6, Math.PI / 6) + circle(cx, cy, 32),
+      paths: [
+        polygon(cx, cy, r, 6, Math.PI / 6),
+        circle(cx, cy, 32),
+        ...centre(cx, cy, r + 16),
+      ],
+      hidden: [circle(cx, cy, 27)],
+      bbox: [cx - flat, cy - r, cx + flat, cy + r],
+      dims: [
+        dimH(cx - flat, cx + flat, cy + r + 40, cy),
+        dimV(cy - 32, cy + 32, cx + r + 40, cx, true),
+      ],
+    });
+  }
+
+  // Deep-groove ball bearing.
+  {
+    const cx = 186;
+    const cy = 432;
+    const R = 84;
+    const balls = 0.72 * R;
+    const ballPaths: string[] = [];
+    for (let i = 0; i < 9; i += 1) {
+      const a = (i / 9) * TAU;
+      ballPaths.push(
+        circle(cx + Math.cos(a) * balls, cy + Math.sin(a) * balls, 0.13 * R),
+      );
+    }
+    out.push({
+      solid: circle(cx, cy, R) + circle(cx, cy, 0.46 * R),
+      paths: [
+        circle(cx, cy, R),
+        circle(cx, cy, R - 20),
+        circle(cx, cy, 0.46 * R),
+        circle(cx, cy, 0.46 * R + 20),
+        ...ballPaths,
+        ...centre(cx, cy, R + 18),
+      ],
+      hidden: [circle(cx, cy, balls)],
+      bbox: [cx - R, cy - R, cx + R, cy + R],
+      dims: [
+        dimH(cx - R, cx + R, cy + R + 44, cy),
+        dimV(cy - 0.46 * R, cy + 0.46 * R, cx + R + 42, cx, true),
+      ],
+    });
+  }
+
+  // Stepped shaft.
+  {
+    const cx = 408;
+    const cy = 624;
+    const steps: [number, number, number][] = [
+      [-132, -38, 34],
+      [-38, 48, 54],
+      [48, 132, 26],
+    ];
+    const bodies = steps.map(([x1, x2, h]) =>
+      rect(cx + x1, cy - h, x2 - x1, h * 2),
+    );
+    out.push({
+      solid: bodies.join(""),
+      paths: [...bodies, `M${cx - 156} ${cy}H${cx + 156}`],
+      hidden: [],
+      bbox: [cx - 132, cy - 54, cx + 132, cy + 54],
+      dims: [
+        dimH(cx - 132, cx + 132, cy + 102, cy + 54),
+        dimV(cy - 54, cy + 54, cx - 176, cx - 38),
+        dimH(cx - 38, cx + 48, cy - 96, cy - 54, true),
+      ],
+    });
+  }
+
+  // Slotted plate.
+  {
+    const cx = 744;
+    const cy = 206;
+    const w = 104;
+    const h = 146;
+    const slot = 44;
+    const slotPath = slotV(cx, cy, slot * 2 + 30, 15);
+    out.push({
+      solid: rect(cx - w / 2, cy - h / 2, w, h) + slotPath,
+      paths: [
+        rect(cx - w / 2, cy - h / 2, w, h),
+        slotPath,
+        ...centre(cx, cy, h / 2 + 16),
+      ],
+      hidden: [],
+      bbox: [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2],
+      dims: [
+        dimH(cx - w / 2, cx + w / 2, cy + h / 2 + 40, cy + h / 2),
+        // Slot length, centre to centre of the two end radii.
+        dimV(cy - slot, cy + slot, cx + w / 2 + 40, cx, true, [
+          [cx, cy - slot],
+          [cx, cy + slot],
+        ]),
+      ],
+    });
+  }
+
+  // Countersunk hole, section.
+  {
+    const cx = 744;
+    const cy = 470;
+    const t = 34;
+    const bore = 17;
+    const csk = 34;
+    const hole = `M${cx - csk} ${cy - t}L${cx - bore} ${cy - t + 20}V${cy + t}H${cx + bore}V${cy - t + 20}L${cx + csk} ${cy - t}Z`;
+    out.push({
+      solid: rect(cx - 96, cy - t, 192, t * 2) + hole,
+      paths: [
+        `M${cx - 96} ${cy - t}h192M${cx - 96} ${cy + t}h192`,
+        `M${cx - csk} ${cy - t}L${cx - bore} ${cy - t + 20}V${cy + t}`,
+        `M${cx + csk} ${cy - t}L${cx + bore} ${cy - t + 20}V${cy + t}`,
+        ...centre(cx, cy, t + 22),
+      ],
+      hidden: [],
+      bbox: [cx - 96, cy - t, cx + 96, cy + t],
+      dims: [
+        dimH(cx - csk, cx + csk, cy - t - 40, cy - t, true),
+        dimH(cx - bore, cx + bore, cy + t + 40, cy + t, true),
+      ],
+    });
+  }
+
+  // Angle bracket.
+  {
+    const cx = 186;
+    const cy = 758;
+    const L = 132;
+    const t = 34;
+    const body = `M${cx - L / 2} ${cy - L / 2}h${t}v${L - t}h${L - t}v${t}h${-L}Z`;
+    const holes = [
+      circle(cx - L / 2 + t / 2, cy - L / 2 + 30, 9),
+      circle(cx + L / 2 - 30, cy + L / 2 - t / 2, 9),
+    ];
+    out.push({
+      solid: body + holes.join(""),
+      paths: [body, ...holes],
+      hidden: [],
+      bbox: [cx - L / 2, cy - L / 2, cx + L / 2, cy + L / 2],
+      dims: [
+        dimV(cy - L / 2, cy + L / 2, cx - L / 2 - 40, cx - L / 2),
+        // Leg thickness: no room between the extension lines, so the arrows
+        // sit outside and point back in.
+        dimH(cx - L / 2, cx - L / 2 + t, cy + L / 2 + 42, cy + L / 2, true),
+      ],
+    });
+  }
+
+  // Door opening, plan.
+  {
+    const cx = 706;
+    const cy = 818;
+    const wall = 20;
+    const open = 112;
+    const left = rect(cx - 190, cy - wall / 2, 190 - open, wall);
+    const right = rect(cx + open, cy - wall / 2, 190 - open, wall);
+    out.push({
+      solid: left + right,
+      paths: [
+        left,
+        right,
+        `M${cx - open} ${cy}V${cy - open * 2}`,
+        `M${cx - open} ${cy - open * 2}A${open * 2} ${open * 2} 0 0 1 ${cx + open} ${cy}`,
+      ],
+      hidden: [],
+      bbox: [cx - 190, cy - wall / 2, cx + 190, cy + wall / 2],
+      dims: [
+        // Structural opening, measured off the hinge the swing is struck from.
+        dimH(cx - open, cx + open, cy + 62, cy + wall / 2, false, [
+          [cx - open, cy],
+        ]),
+        dimV(cy - wall / 2, cy + wall / 2, cx - 214, cx - 190, true),
+      ],
+    });
+  }
+
+  // Spur gear.
+  {
+    const cx = 1052;
+    const cy = 742;
+    const tip = 84;
+    const root = 64;
+    const teeth: string[] = [];
+    for (let i = 0; i < 24; i += 1) {
+      const a = (i / 24) * TAU;
+      teeth.push(
+        `M${(cx + Math.cos(a) * root).toFixed(1)} ${(cy + Math.sin(a) * root).toFixed(1)}L${(cx + Math.cos(a) * tip).toFixed(1)} ${(cy + Math.sin(a) * tip).toFixed(1)}`,
+      );
+    }
+    out.push({
+      solid: circle(cx, cy, tip) + circle(cx, cy, 21),
+      paths: [
+        circle(cx, cy, tip),
+        circle(cx, cy, root),
+        circle(cx, cy, 21),
+        ...teeth,
+        `M${cx - 6} ${cy - 21}h12v8h-12Z`,
+        ...centre(cx, cy, tip + 18),
+      ],
+      hidden: [circle(cx, cy, 74)],
+      bbox: [cx - tip, cy - tip, cx + tip, cy + tip],
+      dims: [
+        dimH(cx - tip, cx + tip, cy + tip + 46, cy),
+        dimV(cy - 21, cy + 21, cx + tip + 42, cx, true),
+      ],
+    });
+  }
+
+  // Welded tee.
+  {
+    const cx = 1412;
+    const cy = 752;
+    const t = 26;
+    const web = 120;
+    const flange = 150;
+    const base = rect(cx - flange / 2, cy + web / 2, flange, t);
+    const stem = rect(cx - t / 2, cy - web / 2, t, web);
+    out.push({
+      solid: base + stem,
+      paths: [
+        base,
+        stem,
+        `M${cx - t / 2 - 16} ${cy + web / 2}l16 -16M${cx + t / 2 + 16} ${cy + web / 2}l-16 -16`,
+      ],
+      hidden: [],
+      bbox: [cx - flange / 2, cy - web / 2, cx + flange / 2, cy + web / 2 + t],
+      dims: [
+        dimH(
+          cx - flange / 2,
+          cx + flange / 2,
+          cy + web / 2 + t + 42,
+          cy + web / 2 + t,
+        ),
+        dimV(
+          cy - web / 2,
+          cy + web / 2,
+          cx + flange / 2 + 40,
+          cx + t / 2,
+          true,
+        ),
+      ],
+    });
+  }
+
+  // Square tube, section.
+  {
+    const cx = 1414;
+    const cy = 428;
+    const w = 112;
+    const h = 96;
+    const t = 18;
+    const x = cx - w / 2;
+    const y = cy - h / 2;
+    out.push({
+      solid: rect(x, y, w, h) + rect(x + t, y + t, w - t * 2, h - t * 2),
+      paths: [
+        rect(x, y, w, h),
+        rect(x + t, y + t, w - t * 2, h - t * 2),
+        ...hatch(x, y, w, t, 9),
+        ...hatch(x, y + h - t, w, t, 9),
+        ...hatch(x, y + t, t, h - t * 2, 9),
+        ...hatch(x + w - t, y + t, t, h - t * 2, 9),
+      ],
+      hidden: [],
+      bbox: [x, y, x + w, y + h],
+      dims: [
+        dimH(x, x + w, y + h + 40, y + h),
+        // Wall thickness, arrows outside because the wall cannot hold them.
+        dimV(y, y + t, x - 36, x, true),
+      ],
+    });
+  }
+
+  // Pillow block housing, front view.
+  {
+    const cx = 1046;
+    const cy = 196;
+    const bw = 92;
+    const R = 58;
+    const bore = 32;
+    const yTop = cy + 52;
+    const yBot = cy + 82;
+    const k = R * Math.SQRT1_2;
+    const foot = 64;
+    const feet = cy + 67;
+    const body =
+      `M${cx - bw} ${yBot}H${cx + bw}V${yTop}H${cx + foot + 4}` +
+      `L${(cx + k).toFixed(1)} ${(cy + k).toFixed(1)}` +
+      `A${R} ${R} 0 1 0 ${(cx - k).toFixed(1)} ${(cy + k).toFixed(1)}` +
+      `L${cx - foot - 4} ${yTop}H${cx - bw}Z`;
+    const slots = [
+      slotH(cx - foot, feet, 34, 9),
+      slotH(cx + foot, feet, 34, 9),
+    ];
+    out.push({
+      solid: [body, circle(cx, cy, bore), ...slots].join(""),
+      paths: [
+        body,
+        circle(cx, cy, bore),
+        circle(cx, cy, bore + 11),
+        ...slots,
+        // Grease nipple boss.
+        `M${cx - 9} ${cy - R}v-14h18v14`,
+        // The cap splits on the shaft centre, so the centre line doubles as it.
+        ...centre(cx, cy, R + 24),
+      ],
+      hidden: [circle(cx, cy, bore + 20)],
+      bbox: [cx - bw, cy - R - 14, cx + bw, yBot],
+      dims: [
+        // Mounting centres, struck off the two slot centres, and the overall
+        // width stepped out beyond them.
+        dimH(cx - foot, cx + foot, yBot + 42, feet, true, [
+          [cx - foot, feet],
+          [cx + foot, feet],
+        ]),
+        dimH(cx - bw, cx + bw, yBot + 78, yBot),
+        dimH(cx - bore, cx + bore, cy - R - 52, cy, true),
+      ],
+    });
+  }
+
+  // Bolted truss node.
+  {
+    const cx = 1150;
+    const cy = 452;
+    const chord = rect(cx - 120, cy - 74, 240, 30);
+    const plate = `M${cx - 88} ${cy - 44}h176v58l-54 42h-122Z`;
+    const holes: string[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      holes.push(circle(cx - 54 + i * 36, cy - 59, 8));
+    }
+    const seats: [number, number][] = [
+      [cx - 50, cy + 16],
+      [cx - 6, cy + 16],
+    ];
+    for (const [hx, hy] of seats) holes.push(circle(hx, hy, 8));
+    out.push({
+      solid: [chord, plate, ...holes].join(""),
+      paths: [
+        chord,
+        plate,
+        ...holes,
+        // Bolt line through the chord, and the fillet welds either side.
+        `M${cx - 120} ${cy - 59}H${cx + 120}`,
+        `M${cx - 88} ${cy - 44}l-13 -13M${cx + 88} ${cy - 44}l13 -13`,
+      ],
+      hidden: [`M${cx - 88} ${cy + 16}H${cx + 88}`],
+      bbox: [cx - 120, cy - 74, cx + 120, cy + 56],
+      dims: [
+        dimV(cy - 74, cy - 44, cx + 158, cx + 120),
+        // Plate depth, then the bolt gauge across the two lower holes.
+        dimV(cy - 44, cy + 56, cx - 128, cx - 88, true),
+        dimH(seats[0][0], seats[1][0], cy + 96, cy + 16, true, seats),
+      ],
+    });
+  }
+
+  return out;
+})();
+
+/** Flat list of every dimension, tagged with the drawing it belongs to. */
+const DIMS = SHEET.flatMap((drawing, d) =>
+  drawing.dims.map((dim, i) => ({ ...dim, part: d, key: `${d}-${i}` })),
+);
+
+/** Running path index per drawing, so the stagger never mutates during render. */
+const PLOT_OFFSET = (() => {
+  const out: number[] = [];
+  let n = 0;
+  for (const d of SHEET) {
+    out.push(n);
+    n += d.paths.length;
+  }
+  return out;
+})();
+
+const PLOT_STEP = 6;
+const PLOT_MAX = 900;
+const ENTRY_MS = 1500;
+
+/** How close the pointer gets before a part's outside dimensions appear. */
+const NEAR_REACH = 96;
+/** And how close to an internal feature before that one appears. */
+const INNER_REACH = 150;
+/** Radius of the lens that lifts the clearing under the pointer. */
+const LENS_R = 230;
+
+const SheetArt = memo(function SheetArt() {
+  return (
+    <svg
+      viewBox="0 0 1600 900"
+      preserveAspectRatio="xMidYMid slice"
+      className="h-full w-full"
+      aria-hidden="true"
+    >
+      {/* Solid parts: what the sheet looks like at rest. */}
+      <g className="text-ink-faint" fillRule="evenodd">
+        {SHEET.map((drawing, d) => (
+          <path
+            key={`s-${d}`}
+            data-solid={d}
+            d={drawing.solid}
+            fill="currentColor"
+            fillOpacity="0.17"
+            stroke="currentColor"
+            strokeWidth="1.2"
+            opacity="0"
+          />
+        ))}
+      </g>
+
+      {/* The linework underneath. */}
+      <g
+        className="text-ink-faint"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {SHEET.map((drawing, d) => (
+          <g key={`w-${d}`} data-wire={d}>
+            {drawing.paths.map((path, i) => (
+              <path
+                key={`p-${i}`}
+                d={path}
+                pathLength={1}
+                className="mr-plot"
+                style={{
+                  animationDelay: `${Math.min((PLOT_OFFSET[d] + i) * PLOT_STEP, PLOT_MAX)}ms`,
+                }}
+              />
+            ))}
+            {drawing.hidden.map((path, i) => (
+              <path
+                key={`h-${i}`}
+                d={path}
+                pathLength={1}
+                strokeDasharray="0.012 0.012"
+                opacity="0.7"
+              />
+            ))}
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+});
+
+/** Dimensions, each hidden until its own feature is approached. */
+const DimLayer = memo(function DimLayer() {
+  return (
+    <svg
+      viewBox="0 0 1600 900"
+      preserveAspectRatio="xMidYMid slice"
+      className="text-accent h-full w-full"
+      aria-hidden="true"
+      data-dims=""
+    >
+      {DIMS.map((dim) => (
+        <g
+          key={dim.key}
+          data-dim={dim.key}
+          opacity="0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+          strokeLinecap="round"
+        >
+          {dim.paths.map((p, i) => (
+            <path key={i} d={p} />
+          ))}
+        </g>
+      ))}
+    </svg>
+  );
+});
+
+/**
+ * The sheet. Parts sit solid until the pointer reaches one: come close and its
+ * outside dimensions appear, move onto it and it opens into linework with the
+ * internal dimensions nearest the pointer.
+ */
+const SheetBackdrop = memo(function SheetBackdrop() {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const solids = SHEET.map((_, d) =>
+      root.querySelector<SVGPathElement>(`path[data-solid="${d}"]`),
+    );
+    const wires = SHEET.map((_, d) =>
+      root.querySelector<SVGGElement>(`g[data-wire="${d}"]`),
+    );
+    const dimGroups = DIMS.map((dim) =>
+      root.querySelector<SVGGElement>(`g[data-dim="${dim.key}"]`),
+    );
+    const svg = root.querySelector<SVGSVGElement>("[data-dims]");
+
+    let map = { ox: 0, oy: 0, k: 1, left: 0, top: 0 };
+    const remap = () => {
+      if (!svg) return;
+      const r = svg.getBoundingClientRect();
+      const k = Math.max(r.width / 1600, r.height / 900);
+      map = {
+        k,
+        ox: (r.width - 1600 * k) / 2,
+        oy: (r.height - 900 * k) / 2,
+        left: r.left,
+        top: r.top,
+      };
+    };
+    remap();
+
+    let pointerX = -9999;
+    let pointerY = -9999;
+    let frame = 0;
+    const start = performance.now();
+    const solidNow = SHEET.map(() => 0);
+    const wireNow = SHEET.map(() => 1);
+    const dimNow = DIMS.map(() => 0);
+    let lensNow = 0;
+
+    const tick = (now: number) => {
+      if (dialogOpen()) {
+        frame = 0;
+        return;
+      }
+
+      const entry = Math.min((now - start) / ENTRY_MS, 1);
+      const px = (pointerX - map.left - map.ox) / map.k;
+      const py = (pointerY - map.top - map.oy) / map.k;
+
+      let busy = entry < 1;
+      let closest = Infinity;
+
+      for (let d = 0; d < SHEET.length; d += 1) {
+        const dist = bboxDist(SHEET[d].bbox, px, py);
+        if (dist < closest) closest = dist;
+        const over = dist === 0;
+        const near = dist < NEAR_REACH;
+
+        // The part fills in as the sheet finishes plotting, and opens back up
+        // wherever the pointer actually is.
+        const wantSolid = over ? 0 : entry;
+        const wantWire = over ? 1 : 1 - entry;
+
+        solidNow[d] += (wantSolid - solidNow[d]) * 0.085;
+        wireNow[d] += (wantWire - wireNow[d]) * 0.085;
+        if (Math.abs(wantSolid - solidNow[d]) > 0.004) busy = true;
+        if (Math.abs(wantWire - wireNow[d]) > 0.004) busy = true;
+
+        solids[d]?.setAttribute("opacity", solidNow[d].toFixed(3));
+        wires[d]?.setAttribute("opacity", wireNow[d].toFixed(3));
+
+        for (let i = 0; i < DIMS.length; i += 1) {
+          const dim = DIMS[i];
+          if (dim.part !== d) continue;
+          const want = dim.inner
+            ? over && Math.hypot(dim.at[0] - px, dim.at[1] - py) < INNER_REACH
+              ? 1
+              : 0
+            : near
+              ? 1
+              : 0;
+          dimNow[i] += (want - dimNow[i]) * 0.11;
+          if (Math.abs(want - dimNow[i]) > 0.004) busy = true;
+          dimGroups[i]?.setAttribute("opacity", dimNow[i].toFixed(3));
+        }
+      }
+
+      // Only lift the clearing while the pointer is actually on a drawing,
+      // so passing over the headline leaves the sheet alone.
+      const wantLens = closest < NEAR_REACH ? 1 : 0;
+      lensNow += (wantLens - lensNow) * 0.085;
+      if (Math.abs(wantLens - lensNow) > 0.004) busy = true;
+
+      root.style.setProperty("--lens-x", `${pointerX - map.left}px`);
+      root.style.setProperty("--lens-y", `${pointerY - map.top}px`);
+      root.style.setProperty("--lens-r", `${(lensNow * LENS_R).toFixed(1)}px`);
+
+      frame = busy ? requestAnimationFrame(tick) : 0;
+    };
+
+    const kick = () => {
+      if (!frame && !dialogOpen()) frame = requestAnimationFrame(tick);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      pointerX = event.clientX;
+      pointerY = event.clientY;
+      kick();
+    };
+
+    const onLeave = () => {
+      pointerX = -9999;
+      pointerY = -9999;
+      kick();
+    };
+
+    const onResize = () => {
+      remap();
+      kick();
+    };
+
+    kick();
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onLeave, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener("scroll", onResize, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onResize);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <div ref={rootRef} className="bg-plate absolute inset-0" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_68%_at_50%_44%,rgb(var(--accent-rgb)/0.05),transparent_72%)]" />
 
       <div className="mr-clear-center absolute inset-0">
-        <div className="mr-parallax absolute inset-[-3%]">
-          <CircuitArt className="text-neutral-600/60" />
-        </div>
+        <SheetArt />
       </div>
 
       <div className="mr-clear-center absolute inset-0">
-        <div className="mr-spotlight absolute inset-0">
-          <div className="mr-parallax absolute inset-[-3%]">
-            <CircuitArt className="text-cyan-300/90" />
-          </div>
-        </div>
+        <DimLayer />
       </div>
 
-      {/* Hands off into the page below. */}
-      <div className="absolute inset-x-0 bottom-0 h-64 bg-linear-to-b from-transparent to-neutral-950" />
+      <div className="to-void absolute inset-x-0 bottom-0 h-64 bg-linear-to-b from-transparent" />
     </div>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 
-function ScrollCue({ onActivate }: { onActivate: () => void }) {
+const ScrollCue = memo(function ScrollCue({
+  onActivate,
+}: {
+  onActivate: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onActivate}
       aria-label="Scroll to content"
-      className="group flex flex-col items-center gap-3 outline-none"
+      className="group flex flex-col items-center gap-3 rounded-xl"
     >
-      <span className="font-mono text-[10px] tracking-[0.22em] text-neutral-500 uppercase transition-colors duration-300 group-hover:text-neutral-300">
-        Scroll
-      </span>
       <span className="relative flex h-11 w-11 items-center justify-center">
-        <span className="mr-animate-cue-glow absolute inset-0 rounded-full bg-cyan-400/25 blur-md" />
-        <span className="absolute inset-0 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-sm transition-all duration-300 group-hover:scale-105 group-hover:border-cyan-300/50 group-hover:bg-cyan-400/10 group-focus-visible:border-cyan-300/70" />
-        <ChevronDown className="mr-animate-bob relative h-[18px] w-[18px] text-neutral-300 transition-colors duration-300 group-hover:text-cyan-200" />
+        <span className="border-hairline bg-surface/70 group-hover:border-accent/60 group-hover:bg-accent/10 absolute inset-0 rounded-full border backdrop-blur-sm transition-colors duration-300" />
+        <ChevronDown className="mr-animate-bob group-hover:text-accent relative h-[18px] w-[18px] text-ink-muted transition-colors duration-300" />
       </span>
     </button>
   );
-}
+});
 
-function Landing() {
-  const toContent = () => {
-    document.getElementById("content")?.scrollIntoView({ behavior: "smooth" });
-  };
+const Landing = memo(function Landing() {
+  const leaving = useRef(false);
+
+  const toContent = useCallback(() => {
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    document.getElementById("content")?.scrollIntoView({
+      behavior: reduced ? "auto" : "smooth",
+    });
+  }, []);
+
+  // The landing behaves like a single pane: one tick down hands over to the
+  // page rather than scrolling the drawing out line by line.
+  useEffect(() => {
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY <= 0 || leaving.current) return;
+      if (window.scrollY > 8) return;
+      // A locked body means a dialog owns the scroll right now.
+      if (document.body.style.overflow === "hidden") return;
+
+      event.preventDefault();
+      leaving.current = true;
+      toContent();
+      window.setTimeout(() => {
+        leaving.current = false;
+      }, 900);
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [toContent]);
 
   return (
     <section
       id="top"
       className="relative flex h-[100svh] min-h-[560px] w-full flex-col overflow-hidden"
     >
-      <CircuitBackdrop />
+      <SheetBackdrop />
 
       <div className="relative z-10 flex flex-1 flex-col px-5 sm:px-8">
         <div className="flex justify-center pt-7 sm:pt-9">
-          <a
-            href="#top"
-            className="mr-enter text-lg font-bold tracking-tight text-white sm:text-xl"
-          >
-            MeshRun
+          <a href="#top" className="mr-enter rounded-sm">
+            <Wordmark className="text-lg sm:text-xl" />
           </a>
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <h1
-            className="mr-enter max-w-[16ch] text-[clamp(2.4rem,7.2vw,5.25rem)] leading-[1.02] font-bold tracking-[-0.035em] text-balance text-white"
+            className="mr-enter max-w-[16ch] text-[clamp(2.4rem,7.2vw,5.25rem)] leading-[1.02] font-bold tracking-[-0.035em] text-balance text-ink"
             style={{ animationDelay: "120ms" }}
           >
             {HOOK}
           </h1>
 
           <div
-            className="mr-enter mt-7 flex flex-wrap items-center justify-center gap-x-[0.4em] gap-y-1 text-[clamp(1.05rem,2.9vw,2.05rem)] leading-tight text-neutral-300 sm:mt-9"
+            className="mr-enter relative mt-7 flex flex-wrap items-center justify-center gap-x-[0.4em] gap-y-1 text-[clamp(1.05rem,2.9vw,2.05rem)] leading-tight text-ink-strong sm:mt-9"
             style={{ animationDelay: "300ms" }}
           >
             <span className="font-light">Run</span>
@@ -800,636 +1732,338 @@ function Landing() {
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
-/*  Engineering targets band                                                  */
+/*  Measured performance band                                                 */
 /* -------------------------------------------------------------------------- */
 
 /**
  * Design targets for the private beta, not readings from a running session.
  * The surrounding UI labels them as such.
  */
-const HERO_TARGETS = [
+const HERO_METRICS = [
   {
     icon: Monitor,
-    label: "Display",
-    value: "60 FPS · 4:4:4 chroma",
-    detail:
-      "Full chroma resolution, so hairline vector weights and small annotation type stay free of colour fringing.",
+    label: "High-Quality",
+    value: "Smooth 120 FPS at 2K",
+    detail: "Orbit, pan, and zoom without stuttering or low-res blur.",
   },
   {
     icon: Gauge,
-    label: "Pipeline",
-    value: "Sub-20ms regional",
-    detail:
-      "End-to-end budget from input to presented frame, against a same-region GPU node.",
+    label: "Low-Latency",
+    value: "Fast & Responsive (20ms+)",
+    detail: "Low latency across North America & Western Europe.",
   },
   {
     icon: Cpu,
-    label: "Acceleration",
-    value: "VideoToolbox + Metal",
-    detail:
-      "Hardware decode composited straight onto a Metal viewport, keeping the CPU idle and the fans off.",
+    label: "Industry Standard",
+    value: "NVIDIA Workstations",
+    detail: "Powered by industry-leading RTX 4000 GPUs.",
   },
   {
     icon: MousePointer2,
-    label: "Peripherals",
-    value: "SpaceMouse 6-DoF",
-    detail:
-      "Native USB redirection for 3Dconnexion controllers, with CAD shortcut chords passed through intact.",
+    label: "Full Passthrough",
+    value: "Plug & Play",
+    detail: "Just plug your peripherals in and start designing.",
   },
 ];
 
-function TargetsBand() {
+const TargetsBand = memo(function TargetsBand() {
   return (
-    <section className="relative bg-neutral-950">
+    <section id="platform" className="relative scroll-mt-20 bg-surface">
       <div className="mx-auto w-full max-w-7xl px-5 pt-20 pb-4 sm:px-8 sm:pt-24">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/70 px-3 py-1.5">
-            <span className="mr-animate-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
-            <span className="font-mono text-[11px] tracking-wide text-neutral-300">
-              Private Beta • Engineered for Apple Silicon
-            </span>
-          </div>
-          <h2 className="mt-6 text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
-            A native client, not a browser tab.
+          <h2 className="text-3xl font-semibold tracking-tight text-balance text-ink sm:text-4xl">
+            CAD in the Cloud
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-neutral-400">
-            MeshRun pairs a native Metal display client with cloud GPU
-            orchestration to stream full-featured Windows engineering
-            environments to macOS — with full shortcut parity and uncompromised
-            viewport rendering, on hardware you already own.
+          <p className="mt-4 text-[15px] leading-relaxed text-ink-body">
+            MeshRun streams full windows CAD from powerful cloud PCs straight to
+            your screen.
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 sm:grid-cols-2 lg:grid-cols-4">
-          {HERO_TARGETS.map((target) => (
-            <div key={target.label} className="bg-neutral-950 p-6">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-400/25 bg-cyan-400/10 text-cyan-300">
-                <target.icon className="h-4 w-4" />
+        <div className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {HERO_METRICS.map((target) => (
+            <div
+              key={target.value}
+              className="group mr-lift flex items-start gap-5 rounded-2xl border border-hairline bg-surface p-6 sm:p-7"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent-lit transition-colors duration-[420ms] group-hover:border-accent/50 group-hover:bg-accent/15">
+                <target.icon className="h-[18px] w-[18px]" />
               </span>
-              <div className="mt-4 font-mono text-[10px] tracking-[0.16em] text-neutral-500 uppercase">
-                {target.label}
+              <div className="min-w-0">
+                <div className="text-[16px] font-semibold tracking-tight text-ink">
+                  {target.value}
+                </div>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted transition-colors duration-[420ms] group-hover:text-ink-body">
+                  {target.detail}
+                </p>
               </div>
-              <div className="mt-1.5 text-[15px] font-semibold tracking-tight text-white">
-                {target.value}
-              </div>
-              <p className="mt-2.5 text-[12.5px] leading-relaxed text-neutral-500">
-                {target.detail}
-              </p>
             </div>
           ))}
         </div>
 
-        <p className="mt-4 text-center text-[11.5px] leading-relaxed text-neutral-600">
-          Design targets for the beta programme, specified against same-region
-          GPU nodes. Real figures vary with network path, display resolution, and
-          workload.
+        <p className="mt-4 text-center text-[11.5px] leading-relaxed text-ink-faint">
+          Performance based on internal testing - real-world speeds depend on
+          your internet connection.
         </p>
-
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-neutral-800/70 pt-7">
-          {TRUST_MARKERS.map((marker) => (
-            <span
-              key={marker}
-              className="flex items-center gap-1.5 text-[12px] text-neutral-500"
-            >
-              <CheckCircle2 className="h-3.5 w-3.5 text-neutral-600" />
-              {marker}
-            </span>
-          ))}
-        </div>
       </div>
     </section>
   );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Problem framing                                                           */
-/* -------------------------------------------------------------------------- */
-
-const PROBLEM_ROWS = [
-  {
-    approach: "Secondary Windows laptop",
-    cost: "Duplicate hardware",
-    friction: "Two machines, two file sets, constant context switching",
-  },
-  {
-    approach: "Uncertified local hypervisor",
-    cost: "No workstation GPU",
-    friction: "Unsupported drivers, viewport stalls, licensing grey zones",
-  },
-  {
-    approach: "On-premise VDI array",
-    cost: "Capital-intensive",
-    friction: "Procurement cycles, idle depreciation, in-house ops burden",
-  },
-  {
-    approach: "MeshRun native client",
-    cost: "On-demand GPU",
-    friction: "Native macOS client, BYOL, ephemeral single-tenant nodes",
-  },
-];
-
-function ProblemSection() {
-  return (
-    <section className="relative border-y border-neutral-800/80 bg-neutral-950">
-      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-        <SectionHeading
-          eyebrow="The AEC hardware gap"
-          title="Apple hardware. x86 engineering software."
-          lead="Architecture, engineering, and construction teams standardise on Apple Silicon MacBooks for build quality and battery life. Autodesk Revit, the specialised AutoCAD toolsets (MEP, Plant 3D, Architecture), and Inventor remain compiled strictly for x86 Windows and demand dedicated workstation GPUs. Every workaround trades one form of friction for another."
-        />
-
-        <div className="mt-10 overflow-x-auto">
-          <table className="w-full min-w-[680px] border-separate border-spacing-0 text-left">
-            <thead>
-              <tr>
-                {["Current approach", "Cost profile", "Operational friction"].map(
-                  (head) => (
-                    <th
-                      key={head}
-                      className="border-b border-neutral-800 pb-3 font-mono text-[10px] tracking-[0.14em] text-neutral-500 uppercase"
-                    >
-                      {head}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {PROBLEM_ROWS.map((row, i) => {
-                const isMeshRun = i === PROBLEM_ROWS.length - 1;
-                return (
-                  <tr key={row.approach}>
-                    <td
-                      className={`border-b border-neutral-800/70 py-4 pr-6 text-sm font-medium ${
-                        isMeshRun ? "text-cyan-300" : "text-neutral-200"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        {isMeshRun ? (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-400" />
-                        ) : (
-                          <X className="h-4 w-4 shrink-0 text-neutral-600" />
-                        )}
-                        {row.approach}
-                      </span>
-                    </td>
-                    <td className="border-b border-neutral-800/70 py-4 pr-6 font-mono text-[12px] text-neutral-400">
-                      {row.cost}
-                    </td>
-                    <td className="border-b border-neutral-800/70 py-4 text-[13px] text-neutral-500">
-                      {row.friction}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Platform pillars                                                          */
 /* -------------------------------------------------------------------------- */
 
-function PlatformSection() {
+/**
+ * Stacked panels: whichever one you are on expands and takes the raised
+ * surface, the rest collapse to their title. Height animates through
+ * grid-template-rows so it eases from real content height rather than a
+ * guessed max-height.
+ */
+const PlatformSection = memo(function PlatformSection() {
+  const [active, setActive] = useState(0);
+
   return (
-    <section id="platform" className="relative scroll-mt-20 bg-neutral-950">
+    <section id="experience" className="bg-surface relative scroll-mt-20">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
         <SectionHeading
-          eyebrow="Platform"
-          title="Four pillars of the MeshRun platform"
-          lead="A proprietary desktop client, an orchestration control plane, and a compliance architecture designed together — not a generic virtual machine with a remote desktop bolted on."
+          title="What We Deliver"
+          lead="Not a clunky band-aid solution. Just your apps running cleanly on Mac."
         />
 
-        <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 lg:grid-cols-2">
-          {PILLARS.map((pillar) => (
-            <div
-              key={pillar.title}
-              className="group relative bg-neutral-950 p-7 transition-colors hover:bg-neutral-900/60 sm:p-8"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 text-cyan-400 transition-colors group-hover:border-cyan-400/30 group-hover:bg-cyan-400/10">
-                <pillar.icon className="h-[18px] w-[18px]" />
-              </div>
-              <h3 className="mt-5 text-[17px] font-semibold tracking-tight text-white">
-                {pillar.title}
-              </h3>
-              <p className="mt-2.5 text-[14px] leading-relaxed text-neutral-400">
-                {pillar.body}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-1.5">
-                {pillar.tags.map((tag) => (
-                  <MonoTag key={tag}>{tag}</MonoTag>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="mt-12 flex flex-col gap-2.5">
+          {PILLARS.map((pillar, i) => {
+            const isActive = i === active;
+            return (
+              <button
+                key={pillar.title}
+                type="button"
+                aria-expanded={isActive}
+                data-no-absorb=""
+                onMouseEnter={() => setActive(i)}
+                onFocus={() => setActive(i)}
+                onClick={() => setActive(i)}
+                className={`group rounded-2xl border px-6 py-6 text-left transition-[background-color,border-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:px-8 sm:py-7 ${
+                  isActive
+                    ? "border-hairline bg-raised"
+                    : "border-hairline/60 bg-surface hover:border-hairline"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors duration-500 ${
+                        isActive
+                          ? "border-accent/25 bg-accent/10 text-accent-lit"
+                          : "border-hairline text-ink-faint"
+                      }`}
+                    >
+                      <pillar.icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <h3
+                      className={`text-[18px] font-semibold tracking-tight transition-colors duration-500 sm:text-[22px] ${
+                        isActive ? "text-ink" : "text-ink-muted"
+                      }`}
+                    >
+                      {pillar.title}
+                    </h3>
+                  </div>
+                </div>
+
+                <div
+                  className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  style={{ gridTemplateRows: isActive ? "1fr" : "0fr" }}
+                >
+                  <div className="overflow-hidden">
+                    <p className="text-ink-body max-w-2xl pt-4 text-[14.5px] leading-relaxed sm:pl-[60px]">
+                      {pillar.body}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
-/*  Performance / engineering stack                                           */
+/*  Cost                                                                      */
 /* -------------------------------------------------------------------------- */
 
-function PerformanceSection() {
-  const total = LATENCY_BUDGET.reduce((sum, item) => sum + item.ms, 0);
+/** Each row is the same decision seen twice: what buying costs, what renting returns. */
+const TRADES = [
+  {
+    cost: "Heavy in your bag every single day",
+    gain: "Keep carrying the laptop you actually like",
+  },
+  {
+    cost: "Battery that doesn't make it to lunch",
+    gain: "All-day battery life from the most efficient laptops",
+  },
+  {
+    cost: "Your fans sound like a plane taking off",
+    gain: "Dead silent fans and a laptop that doesn't burn your lap",
+  },
+  {
+    cost: "Paid for in full, whether you use it or not",
+    gain: "Only pay for the usage you need",
+  },
+  {
+    cost: "Slower every year, and you can't do anything about it",
+    gain: "Fresh cloud GPUs every year without buying new hardware",
+  },
+];
 
+const CostSection = memo(function CostSection() {
   return (
     <section
-      id="performance"
-      className="relative scroll-mt-20 border-y border-neutral-800/80 bg-neutral-900/25"
+      id="how"
+      className="border-hairline/80 bg-raised/25 relative scroll-mt-20 border-y"
     >
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-        <SectionHeading
-          eyebrow="Performance"
-          title="Proprietary engineering across the whole pipeline"
-          lead="MeshRun owns the client engine, the input pipeline, and the display transport. Each subsystem is built and tuned in-house against the specific demands of vector-dense CAD and BIM workloads."
-        />
+        <SectionHeading title="You don't need to own a workstation, You need power for a few hours a week." />
 
-        <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-800 md:grid-cols-2 lg:grid-cols-3">
-          {SUBSYSTEMS.map((system) => (
-            <div key={system.index} className="bg-neutral-950 p-7">
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-cyan-400">
-                  <system.icon className="h-4 w-4" />
+        {/* Pulled wide so the hover tint has a margin of its own while the rows
+            stay aligned with everything else on the page. */}
+        <ul className="border-hairline mt-12 -mx-3 border-t sm:-mx-4">
+          {TRADES.map((trade) => (
+            <li
+              key={trade.cost}
+              className="group border-hairline hover:bg-gain/5 border-b transition-colors duration-500"
+            >
+              <div className="flex items-center gap-4 px-3 py-5 sm:gap-5 sm:px-4">
+                <span className="relative inline-grid h-5 w-5 shrink-0 place-items-center">
+                  <X className="text-ink-faint col-start-1 row-start-1 h-4 w-4 transition-all duration-500 group-hover:scale-75 group-hover:opacity-0" />
+                  <CheckCircle2 className="text-gain col-start-1 row-start-1 h-[18px] w-[18px] scale-75 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100" />
                 </span>
-                <span className="font-mono text-[11px] tracking-[0.16em] text-neutral-600">
-                  {system.index}
+
+                <span className="grid flex-1">
+                  <span className="text-ink-muted col-start-1 row-start-1 text-[15px] leading-relaxed transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-0 sm:text-[17px]">
+                    {trade.cost}
+                  </span>
+                  <span className="text-gain col-start-1 row-start-1 translate-y-1 text-[15px] leading-relaxed font-medium opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 sm:text-[17px]">
+                    {trade.gain}
+                  </span>
                 </span>
               </div>
-              <h3 className="mt-4 text-[15.5px] font-semibold tracking-tight text-white">
-                {system.title}
-              </h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-neutral-400">
-                {system.body}
-              </p>
-              <dl className="mt-5 space-y-2 border-t border-neutral-800 pt-4">
-                {system.specs.map((spec) => (
-                  <div
-                    key={spec.label}
-                    className="flex items-baseline justify-between gap-3"
-                  >
-                    <dt className="shrink-0 text-[11.5px] text-neutral-600">
-                      {spec.label}
-                    </dt>
-                    <dd className="text-right font-mono text-[11px] text-neutral-300">
-                      {spec.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            </li>
           ))}
-
-          {/* Closes the 3-column grid, which would otherwise end on an empty cell. */}
-          <div className="flex flex-col justify-center bg-neutral-950 p-7">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-400/25 bg-cyan-400/10 text-cyan-300">
-              <Boxes className="h-4 w-4" />
-            </span>
-            <h3 className="mt-4 text-[15.5px] font-semibold tracking-tight text-white">
-              One engineered system
-            </h3>
-            <p className="mt-2.5 text-[13.5px] leading-relaxed text-neutral-400">
-              The client, the control plane, and the transport are developed
-              together in-house. This is not an off-the-shelf remote desktop
-              pointed at a rented virtual machine.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-1.5">
-              <MonoTag>Cloud-agnostic</MonoTag>
-              <MonoTag>Single-tenant</MonoTag>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
-          {/* Latency budget */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-7 lg:col-span-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h3 className="text-[15.5px] font-semibold tracking-tight text-white">
-                Representative regional latency budget
-              </h3>
-              <span className="font-mono text-[11px] text-cyan-300 tabular-nums">
-                ≈ {total.toFixed(1)} ms end-to-end
-              </span>
-            </div>
-            <p className="mt-2 text-[13px] text-neutral-500">
-              Target allocation for a client connected to a same-region GPU node.
-              Actual figures vary with network path and display resolution.
-            </p>
-
-            <div className="mt-6 flex h-2.5 w-full overflow-hidden rounded-full bg-neutral-900">
-              {LATENCY_BUDGET.map((item, i) => (
-                <div
-                  key={item.label}
-                  className={`h-full ${SEGMENT_COLORS[i]}`}
-                  style={{ width: `${(item.ms / total) * 100}%` }}
-                />
-              ))}
-            </div>
-
-            <ul className="mt-5 space-y-2.5">
-              {LATENCY_BUDGET.map((item, i) => (
-                <li key={item.label} className="flex items-center gap-3">
-                  <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${SEGMENT_COLORS[i]}`}
-                  />
-                  <span className="shrink-0 text-[13px] font-medium text-neutral-200">
-                    {item.label}
-                  </span>
-                  <span className="hidden truncate text-[12px] text-neutral-600 sm:block">
-                    {item.detail}
-                  </span>
-                  <span className="ml-auto shrink-0 font-mono text-[11.5px] text-neutral-400 tabular-nums">
-                    {item.ms.toFixed(1)} ms
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Transport spec */}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-7 lg:col-span-2">
-            <h3 className="text-[15.5px] font-semibold tracking-tight text-white">
-              Display transport specification
-            </h3>
-            <p className="mt-2 text-[13px] text-neutral-500">
-              4:4:4 chroma is non-negotiable for engineering work — it is what
-              keeps hairline vector weights and small annotation type free of
-              colour fringing.
-            </p>
-            <dl className="mt-6 divide-y divide-neutral-800 border-t border-neutral-800">
-              {TRANSPORT_SPECS.map((spec) => (
-                <div
-                  key={spec.label}
-                  className="flex items-baseline justify-between gap-3 py-2.5"
-                >
-                  <dt className="shrink-0 text-[12.5px] text-neutral-500">
-                    {spec.label}
-                  </dt>
-                  <dd className="text-right font-mono text-[11.5px] text-neutral-200">
-                    {spec.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
+        </ul>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Architecture flow                                                         */
 /* -------------------------------------------------------------------------- */
 
-function ArchitectureSection() {
-  return (
-    <section id="architecture" className="relative scroll-mt-20 bg-neutral-950">
-      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
-        <SectionHeading
-          eyebrow="System architecture"
-          title="From dock icon to GPU session in three steps"
-          lead="The control plane handles region selection, node lifecycle, and storage mapping. You handle the drafting."
-          align="center"
-        />
-
-        <div className="relative mt-14">
-          <div
-            className="pointer-events-none absolute top-[38px] right-[14%] left-[14%] hidden h-px lg:block"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, rgba(34,211,238,0.35), rgba(34,211,238,0.35), transparent)",
-            }}
-          />
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-3 lg:gap-6">
-            {STEPS.map((step) => (
-              <div key={step.step} className="relative">
-                <div className="flex justify-center">
-                  <span className="relative z-10 flex h-[76px] w-[76px] items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-900 text-cyan-400 shadow-xl shadow-black/50">
-                    <step.icon className="h-6 w-6" />
-                  </span>
-                </div>
-                <div className="mt-6 text-center">
-                  <div className="font-mono text-[10.5px] tracking-[0.18em] text-cyan-400 uppercase">
-                    {step.step}
-                  </div>
-                  <h3 className="mt-2.5 text-[17px] font-semibold tracking-tight text-white">
-                    {step.title}
-                  </h3>
-                  <p className="mx-auto mt-2.5 max-w-sm text-[13.5px] leading-relaxed text-neutral-400">
-                    {step.body}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Storage & privacy                                                         */
-/* -------------------------------------------------------------------------- */
-
-const CLIENT_FACTS = [
-  "Project files remain on local disk",
-  "Directory exposed to the session as Z:\\MacFiles",
-  "You choose exactly which folders are visible",
-  "Existing backup and retention policy still applies",
-];
-
-const NODE_FACTS = [
-  "Isolated environment provisioned per session",
-  "No mandatory cloud file persistence layer",
-  "Instance destroyed automatically on disconnect",
-  "No cross-tenant storage or shared user profile",
-];
-
-function FactList({ items }: { items: string[] }) {
-  return (
-    <ul className="mt-6 space-y-3">
-      {items.map((item) => (
-        <li key={item} className="flex gap-2.5">
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-          <span className="text-[13.5px] leading-relaxed text-neutral-400">
-            {item}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function PrivacySection() {
+const ArchitectureSection = memo(function ArchitectureSection() {
   return (
     <section
-      id="privacy"
-      className="relative scroll-mt-20 border-y border-neutral-800/80 bg-neutral-900/25"
+      id="session"
+      className="relative scroll-mt-20 border-y border-hairline/80 bg-raised/25"
     >
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
         <SectionHeading
-          eyebrow="Storage & privacy"
-          title="Stream the compute. Keep the files."
-          lead="MeshRun mounts a directory from your Mac straight into the session as a native Windows volume. Proprietary models, client drawings, and consultant packages stay on hardware you control, which removes persistent cloud retention from your risk register entirely."
+          title="How a session works"
+          lead="Everything from opening the app to getting to work takes as little as 45 seconds."
+          align="center"
         />
 
-        <div className="mt-12 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[1fr_auto_1fr]">
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-7">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300">
-                <Monitor className="h-4 w-4" />
-              </span>
-              <div>
-                <div className="text-[14.5px] font-semibold text-white">
-                  Your Mac
-                </div>
-                <div className="font-mono text-[10px] tracking-wide text-neutral-500 uppercase">
-                  Client of record
-                </div>
+        <div className="mt-14 grid grid-cols-1 gap-10 [--step-gap:2.5rem] sm:grid-cols-2 lg:grid-cols-4 lg:gap-6 lg:[--step-gap:1.5rem]">
+          {STEPS.map((step, i) => (
+            <div key={step.step} className="group relative">
+              {/* The row connector only: index 1 gains a neighbour once the
+                  row holds all four, and stacked there is nothing to join. */}
+              {i < STEPS.length - 1 ? (
+                <span
+                  aria-hidden="true"
+                  className={`mr-step-across pointer-events-none absolute top-[38px] left-1/2 hidden h-px ${
+                    i === 1 ? "lg:block" : "sm:block"
+                  }`}
+                />
+              ) : null}
+              <div className="flex justify-center">
+                <span className="relative z-10 flex h-[76px] w-[76px] items-center justify-center rounded-2xl border border-hairline bg-raised text-accent mr-shadow-lift transition-all duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-1.5 group-hover:border-accent group-hover:bg-accent group-hover:text-inverse-ink">
+                  <step.icon className="h-6 w-6" />
+                </span>
+              </div>
+              <div className="mt-6 text-center">
+                <h3 className="text-[17px] font-semibold tracking-tight text-ink transition-colors duration-[420ms] group-hover:text-accent">
+                  {step.title}
+                </h3>
+                <p className="mx-auto mt-2.5 max-w-sm text-[13.5px] leading-relaxed text-ink-body">
+                  {step.body}
+                </p>
               </div>
             </div>
-            <FactList items={CLIENT_FACTS} />
-          </div>
-
-          {/* Encrypted channel */}
-          <div className="flex flex-row items-center justify-center gap-3 lg:w-40 lg:flex-col">
-            <div className="h-px w-10 bg-linear-to-r from-transparent to-cyan-400/50 lg:h-14 lg:w-px lg:bg-linear-to-b" />
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/5 px-3.5 py-3 text-center">
-              <Lock className="h-4 w-4 text-cyan-300" />
-              <div className="font-mono text-[10px] leading-tight tracking-wide text-cyan-200">
-                Encrypted
-                <br />
-                mount channel
-              </div>
-            </div>
-            <div className="h-px w-10 bg-linear-to-r from-cyan-400/50 to-transparent lg:h-14 lg:w-px lg:bg-linear-to-b" />
-          </div>
-
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950 p-7">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300">
-                <Server className="h-4 w-4" />
-              </span>
-              <div>
-                <div className="text-[14.5px] font-semibold text-white">
-                  Ephemeral GPU node
-                </div>
-                <div className="font-mono text-[10px] tracking-wide text-neutral-500 uppercase">
-                  Single tenant
-                </div>
-              </div>
-            </div>
-            <FactList items={NODE_FACTS} />
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-neutral-800 bg-neutral-950 p-5 sm:flex-row sm:items-center">
-          <HardDrive className="h-4 w-4 shrink-0 text-cyan-400" />
-          <p className="text-[13px] leading-relaxed text-neutral-400">
-            <span className="font-medium text-neutral-200">
-              Data sovereignty by default.
-            </span>{" "}
-            Because the file system of record never leaves the client machine,
-            MeshRun can be adopted without renegotiating the data-residency
-            clauses in your existing client contracts.
-          </p>
+          ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
-/*  BYOL architecture                                                         */
+/*  Files and licensing                                                       */
 /* -------------------------------------------------------------------------- */
 
-const BYOL_CARDS = [
+const YOURS_POINTS = [
+  {
+    icon: HardDrive,
+    title: "Your files stay on your laptop",
+    body: "Pick the folders you want and they show up in the session as a normal drive. Nothing has to be uploaded before you can open it.",
+  },
+  {
+    icon: Lock,
+    title: "The machine is yours alone",
+    body: "Every session gets its own machine, wiped the moment you disconnect. Nobody else has been on it, and nobody else gets it after.",
+  },
   {
     icon: ShieldCheck,
-    title: "Named-user authentication",
-    body: "You sign in to your own Autodesk Identity inside the session. MeshRun never holds, pools, proxies, or re-sells vendor licences.",
-  },
-  {
-    icon: Boxes,
-    title: "Single-tenant isolation",
-    body: "Each session runs in a dedicated ephemeral environment with no shared user profile, which is what vendor virtualization terms require.",
-  },
-  {
-    icon: Layers,
-    title: "Zero software markup",
-    body: "You pay MeshRun for orchestration and GPU compute only. Your existing subscription agreement and renewal cycle stay untouched.",
+    title: "Use your existing license",
+    body: "Sign in with your own Autodesk account, exactly as you do now. We don't resell licences and your subscription doesn't change.",
   },
 ];
 
-const COMPLIANCE_POINTS = [
-  "Vendor named-user authentication only",
-  "No licence pooling or concurrent sharing",
-  "Isolated single-tenant compute per session",
-  "Customer remains the licensee of record",
-  "No redistribution of vendor binaries",
-  "Session logs scoped to infrastructure telemetry",
-];
-
-function ByolSection() {
+const YoursSection = memo(function YoursSection() {
   return (
-    <section id="byol" className="relative scroll-mt-20 bg-neutral-950">
+    <section id="privacy" className="relative scroll-mt-20 bg-surface">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
         <SectionHeading
-          eyebrow="BYOL architecture"
-          title="Compliance designed in, not retrofitted"
-          lead="MeshRun is 100% Bring-Your-Own-License. The platform provides the client engine, the orchestration layer, and the GPU environment. The software licence relationship stays exactly where it already is — between your firm and your vendor."
+          title="Your files and your licence stay yours."
+          lead="Renting compute shouldn't mean giving up control of your files or buying software twice."
         />
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {BYOL_CARDS.map((card) => (
+        <div className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {YOURS_POINTS.map((point) => (
             <div
-              key={card.title}
-              className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-7"
+              key={point.title}
+              className="group mr-lift rounded-2xl border border-hairline bg-surface p-7"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-cyan-400">
-                <card.icon className="h-[18px] w-[18px]" />
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-hairline bg-raised text-accent transition-colors duration-[420ms] group-hover:border-accent/50 group-hover:bg-accent/15 group-hover:text-accent-lit">
+                <point.icon className="h-4 w-4" />
               </span>
-              <h3 className="mt-5 text-[15.5px] font-semibold tracking-tight text-white">
-                {card.title}
+              <h3 className="mt-4 text-[15.5px] font-semibold tracking-tight text-ink transition-colors duration-[420ms] group-hover:text-ink">
+                {point.title}
               </h3>
-              <p className="mt-2.5 text-[13.5px] leading-relaxed text-neutral-400">
-                {card.body}
+              <p className="mt-2.5 text-[13.5px] leading-relaxed text-ink-body transition-colors duration-[420ms] group-hover:text-ink-body">
+                {point.body}
               </p>
             </div>
           ))}
         </div>
-
-        <div className="mt-6 rounded-2xl border border-neutral-800 bg-neutral-900/40 p-7">
-          <div className="flex items-center gap-2.5">
-            <Terminal className="h-4 w-4 text-cyan-400" />
-            <h3 className="font-mono text-[11px] tracking-[0.16em] text-neutral-400 uppercase">
-              Compliance posture
-            </h3>
-          </div>
-          <div className="mt-5 grid grid-cols-1 gap-x-10 gap-y-3 sm:grid-cols-2">
-            {COMPLIANCE_POINTS.map((item) => (
-              <div key={item} className="flex gap-2.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400/80" />
-                <span className="text-[13px] text-neutral-400">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Pricing                                                                   */
@@ -1441,15 +2075,12 @@ const PRICING_TIERS = [
     price: 19,
     hours: 15,
     featured: false,
-    blurb:
-      "For individual drafters and freelancers running focused sessions on a Mac.",
     features: [
-      "15 GPU session hours per month",
-      "Single-tenant ephemeral nodes",
-      "Client-side folder mounting",
-      "60 FPS · 4:4:4 display transport",
-      "SpaceMouse and full shortcut pass-through",
-      "Email support",
+      "Top up extra hours whenever you need them",
+      "A private, dedicated machine every session",
+      "Open and save files directly from your own folders",
+      "Crisp 120 FPS at 2K with full colour accuracy",
+      "SpaceeMouse and Mac shortcut support built-in",
     ],
   },
   {
@@ -1457,368 +2088,171 @@ const PRICING_TIERS = [
     price: 49,
     hours: 40,
     featured: true,
-    blurb:
-      "For studios running production BIM and modelling workloads every day.",
-    features: [
-      "40 GPU session hours per month",
-      "Everything in Standard",
-      "Priority regional node allocation",
-      "Higher-memory GPU instance classes",
-      "Multi-monitor session support",
-      "Priority support",
-    ],
+    features: ["Everything in Standard"],
   },
 ];
 
-function PricingSection({ onRequestAccess }: { onRequestAccess: () => void }) {
+const PricingSection = memo(function PricingSection({
+  onRequestAccess,
+}: {
+  onRequestAccess: () => void;
+}) {
   return (
     <section
       id="pricing"
-      className="relative scroll-mt-20 border-y border-neutral-800/80 bg-neutral-900/25"
+      className="relative scroll-mt-20 border-y border-hairline/80 bg-raised/25"
     >
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
         <SectionHeading
-          eyebrow="Pricing"
-          title="Pay for compute, not for software."
-          lead="Two subscription tiers, each with a monthly pool of GPU session hours. Your Autodesk licence stays your own — MeshRun never adds software markup."
+          title="Pay for what you need."
+          lead="Two simple plans with monthly GPU hours. Running into a busy project week? Top up extra hours anytime without upgrading your plan. We don't sell licenses, get that from your software provider."
           align="center"
         />
 
-        <div className="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
-          {PRICING_TIERS.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative flex flex-col rounded-2xl border p-7 sm:p-8 ${
-                tier.featured
-                  ? "border-cyan-400/40 bg-neutral-950 shadow-[0_0_60px_-24px_rgba(34,211,238,0.5)]"
-                  : "border-neutral-800 bg-neutral-950"
-              }`}
-            >
-              {tier.featured ? (
-                <span className="absolute -top-3 left-7 rounded-full border border-cyan-400/40 bg-neutral-950 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-cyan-300 uppercase">
-                  Most popular
-                </span>
-              ) : null}
-
-              <h3 className="text-[17px] font-semibold tracking-tight text-white">
-                {tier.name}
-              </h3>
-              <p className="mt-2 text-[13.5px] leading-relaxed text-neutral-400">
-                {tier.blurb}
-              </p>
-
-              <div className="mt-6 flex items-baseline gap-1.5">
-                <span className="text-5xl font-semibold tracking-tight text-white tabular-nums">
-                  ${tier.price}
-                </span>
-                <span className="text-[13px] text-neutral-500">USD / month</span>
-              </div>
-              <div className="mt-2 font-mono text-[11.5px] tracking-wide text-cyan-300">
-                {tier.hours} GPU session hours included
-              </div>
-
-              <ul className="mt-7 flex-1 space-y-3 border-t border-neutral-800 pt-6">
-                {tier.features.map((feature) => (
-                  <li key={feature} className="flex gap-2.5">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-                    <span className="text-[13.5px] leading-relaxed text-neutral-300">
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                type="button"
-                onClick={onRequestAccess}
-                className={`group mt-8 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  tier.featured
-                    ? "bg-white text-neutral-950 hover:shadow-[0_0_28px_-6px_rgba(34,211,238,0.65)]"
-                    : "border border-neutral-800 bg-neutral-900/60 text-neutral-100 hover:border-neutral-700 hover:bg-neutral-900"
-                }`}
-              >
-                Request Early Access
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="mx-auto mt-6 max-w-4xl rounded-xl border border-neutral-800 bg-neutral-950 p-5">
+        <div className="mx-auto mt-6 max-w-4xl rounded-xl border border-hairline bg-surface p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <Zap className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-            <p className="text-[13px] leading-relaxed text-neutral-400">
-              <span className="font-medium text-neutral-200">
-                Need more time?
+            <CircleDollarSign className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+            <p className="text-[13px] leading-relaxed text-ink-body">
+              <span className="font-medium text-ink-strong">
+                Pricing Coming Soon.
               </span>{" "}
-              Additional GPU session hours can be purchased on top of either
-              subscription at any point in the billing cycle, so a deadline week
-              does not mean an upgrade you do not need afterwards. All prices are
-              in USD and billed monthly. Bring-Your-Own-License applies to every
-              tier: you authenticate with your own Autodesk subscription, and
-              MeshRun bills only for orchestration and GPU compute.
+              We&rsquo;re still in development, and will post information when
+              it&rsquo;s available.
             </p>
           </div>
         </div>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Closing CTA                                                               */
 /* -------------------------------------------------------------------------- */
 
-function ClosingCta({ onRequestAccess }: { onRequestAccess: () => void }) {
+const ClosingCta = memo(function ClosingCta({
+  onRequestAccess,
+}: {
+  onRequestAccess: () => void;
+}) {
   return (
-    <section className="relative overflow-hidden border-t border-neutral-800/80 bg-neutral-950">
+    <section className="relative overflow-hidden border-t border-hairline/80 bg-surface">
       <div className="mr-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]" />
+      <GridGlow className="pointer-events-none absolute inset-0 opacity-70" />
       <div
         className="pointer-events-none absolute inset-x-0 -bottom-40 h-80"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(34,211,238,0.10), transparent 70%)",
+            "radial-gradient(ellipse at center, rgb(var(--accent-rgb) / 0.10), transparent 70%)",
         }}
       />
       <div className="relative mx-auto w-full max-w-3xl px-5 py-24 text-center sm:px-8 sm:py-28">
-        <div className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/70 px-3 py-1.5">
-          <span className="mr-animate-ring h-1.5 w-1.5 rounded-full bg-cyan-400" />
-          <span className="font-mono text-[11px] tracking-wide text-neutral-300">
-            Onboarding by region · GPU capacity limited
-          </span>
-        </div>
-        <h2 className="mt-7 text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
-          Put a real engineering workstation on your MacBook.
+        <h2 className="text-3xl font-semibold tracking-tight text-balance text-ink sm:text-4xl">
+          Carry the laptop you love. Run the software it can&rsquo;t.
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-neutral-400">
-          We are onboarding architecture, engineering, and design studios into the
-          private beta in batches. Tell us what you run and we will match you to a
-          regional GPU node.
+        <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-ink-body">
+          MeshRun isn&rsquo;t available yet. Tell us how you want to get more
+          out of your laptop and we&rsquo;ll get in touch.
         </p>
         <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <button
             type="button"
             onClick={onRequestAccess}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-neutral-950 transition-colors hover:bg-neutral-200 sm:w-auto"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-inverse px-7 text-sm font-semibold text-inverse-ink transition-colors hover:bg-inverse-hover sm:w-auto"
           >
             Request Early Access
             <ArrowRight className="h-4 w-4" />
           </button>
           <a
-            href="mailto:contact@meshrun.co"
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900/60 px-7 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-700 hover:text-white sm:w-auto"
+            href="mailto:info@meshrun.co"
+            className="mr-glow-hover flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-hairline bg-raised/60 px-7 text-sm font-medium text-ink-strong transition-colors hover:border-hairline-strong hover:text-ink sm:w-auto"
           >
             <Mail className="h-4 w-4" />
-            contact@meshrun.co
+            info@meshrun.co
           </a>
         </div>
-        <p className="mt-5 text-[12.5px] text-neutral-500">
-          Bring your existing Autodesk subscription • Zero software markup.
+        <p className="mt-5 text-[12.5px] text-ink-muted">
+          We don&rsquo;t sell licences &bull; Not affiliated with Autodesk.
         </p>
       </div>
     </section>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
 /*  Footer                                                                    */
 /* -------------------------------------------------------------------------- */
 
-const FOOTER_COLUMNS = [
-  {
-    heading: "Platform",
-    links: NAV_LINKS.map((link) => ({ label: link.label, href: link.href })),
-  },
-  {
-    heading: "Architecture",
-    links: [
-      { label: "System flow", href: "#architecture" },
-      { label: "Display transport", href: "#performance" },
-      { label: "Data isolation", href: "#privacy" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { label: "contact@meshrun.co", href: "mailto:contact@meshrun.co" },
-      { label: "meshrun.co", href: "https://meshrun.co" },
-    ],
-  },
-];
-
-function Footer() {
+const Footer = memo(function Footer() {
   return (
-    <footer className="border-t border-neutral-800/80 bg-neutral-950">
+    <footer className="border-t border-hairline/80 bg-surface">
       <div className="mx-auto w-full max-w-7xl px-5 py-14 sm:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_1.5fr]">
           <div>
             <Wordmark className="text-[17px]" />
-            <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-neutral-500">
-              The native engineering workstation client for macOS.
-              GPU-accelerated Windows compute, orchestrated on demand.
+            <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-ink-muted">
+              Full-featured Windows CAD, streamed to the machine you already
+              carry. GPU compute on demand, your licence and your files your
+              own.
             </p>
-            <div className="mt-5 flex items-start gap-2 font-mono text-[10.5px] leading-relaxed tracking-wide text-neutral-600">
-              <Boxes className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              MeshRun Technologies Inc. • British Columbia, Canada
+            <div className="mt-5 font-mono text-[10.5px] tracking-wide whitespace-nowrap text-ink-faint">
+              MeshRun Technologies Inc. · Built in Canada 🍁
             </div>
           </div>
 
-          {FOOTER_COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <div className="font-mono text-[10px] tracking-[0.16em] text-neutral-500 uppercase">
-                {column.heading}
-              </div>
-              <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={`${column.heading}-${link.label}`}>
-                    <a
-                      href={link.href}
-                      className="text-[13px] text-neutral-400 transition-colors hover:text-white"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="space-y-4">
+            <p className="text-[11.5px] leading-relaxed text-ink-faint">
+              Autodesk, AutoCAD, and Revit are registered trademarks of
+              Autodesk, Inc. in the USA and other countries. MeshRun
+              Technologies Inc. is an independent software and orchestration
+              platform provider and is not affiliated with, endorsed by, or
+              sponsored by Autodesk, Inc.
+            </p>
+            <p className="text-[11.5px] leading-relaxed text-ink-faint">
+              NVIDIA and RTX are trademarks of NVIDIA Corporation. Apple, macOS,
+              Metal, and Apple Silicon are trademarks of Apple Inc. 3Dconnexion
+              and SpaceMouse are trademarks of 3Dconnexion. All other trademarks
+              are the property of their respective owners and are referenced for
+              compatibility and interoperability purposes only.
+            </p>
+          </div>
         </div>
 
-        <div className="mt-12 border-t border-neutral-800/80 pt-7">
-          <div className="flex flex-col gap-2 text-[12.5px] text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 border-t border-hairline/80 pt-7">
+          <div className="flex flex-col gap-2 text-[12.5px] text-ink-muted sm:flex-row sm:items-center sm:justify-between">
             <span>© 2026 MeshRun Technologies Inc. All rights reserved.</span>
             <a
-              href="mailto:contact@meshrun.co"
-              className="transition-colors hover:text-neutral-300"
+              href="mailto:info@meshrun.co"
+              className="transition-colors hover:text-ink-strong"
             >
-              contact@meshrun.co
+              info@meshrun.co
             </a>
           </div>
-
-          <p className="mt-6 max-w-4xl text-[11.5px] leading-relaxed text-neutral-600">
-            Autodesk, AutoCAD, and Revit are registered trademarks of Autodesk,
-            Inc. in the USA and other countries. MeshRun Technologies Inc. is an
-            independent software and orchestration platform provider and is not
-            affiliated with, endorsed by, or sponsored by Autodesk, Inc.
-          </p>
-          <p className="mt-3 max-w-4xl text-[11.5px] leading-relaxed text-neutral-600">
-            NVIDIA and RTX are trademarks of NVIDIA Corporation. Apple, macOS,
-            Metal, and Apple Silicon are trademarks of Apple Inc. 3Dconnexion and
-            SpaceMouse are trademarks of 3Dconnexion. All other trademarks are the
-            property of their respective owners and are referenced for
-            compatibility and interoperability purposes only.
-          </p>
-          <p className="mt-3 max-w-4xl text-[11.5px] leading-relaxed text-neutral-600">
-            Software licensing is Bring-Your-Own-License. Customers are
-            responsible for holding valid licences for any third-party software
-            operated within a MeshRun session. Performance figures are engineering
-            targets measured on same-region GPU nodes and will vary with network
-            conditions, display resolution, and workload.
-          </p>
         </div>
       </div>
     </footer>
   );
-}
+});
 
 /* -------------------------------------------------------------------------- */
-/*  Early access qualification modal                                          */
+/*  Early access dialog                                                       */
 /* -------------------------------------------------------------------------- */
 
-function ChoicePill({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={selected}
-      className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12.5px] font-medium transition-colors ${
-        selected
-          ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-200"
-          : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
-      }`}
-    >
-      {selected ? (
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-      ) : (
-        <span className="h-3.5 w-3.5 shrink-0 rounded-full border border-neutral-700" />
-      )}
-      {children}
-    </button>
-  );
-}
+/**
+ * Requests are closed for now, so the dialog says so plainly and hands over an
+ * address rather than collecting details nobody is reading.
+ */
+function WaitlistModal({ onClose }: { onClose: () => void }) {
+  useDialogLock(true);
 
-function FieldLabel({ children, hint }: { children: ReactNode; hint?: string }) {
-  return (
-    <div className="mb-2.5 flex items-baseline justify-between gap-3">
-      <span className="text-[12.5px] font-medium text-neutral-200">
-        {children}
-      </span>
-      {hint ? (
-        <span className="font-mono text-[10px] text-neutral-600">{hint}</span>
-      ) : null}
-    </div>
-  );
-}
-
-function WaitlistModal({
-  initialEmail,
-  onClose,
-}: {
-  initialEmail: string;
-  onClose: () => void;
-}) {
-  const [email, setEmail] = useState(initialEmail);
-  const [software, setSoftware] = useState<string[]>([]);
-  const [hardware, setHardware] = useState("");
-  const [teamSize, setTeamSize] = useState("");
-  const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  // The dialog is only mounted while open, so a fresh mount resets the form.
-  // Escape dismisses it, and background scroll stays locked for its lifetime.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
-
-  const toggleSoftware = (option: string) => {
-    setSoftware((prev) =>
-      prev.includes(option)
-        ? prev.filter((item) => item !== option)
-        : [...prev, option],
-    );
-  };
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const trimmed = email.trim();
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed)) {
-      setError("Enter a valid work email address.");
-      return;
-    }
-
-    setError("");
-    setSubmitted(true);
-  };
 
   return (
     <div
@@ -1828,163 +2262,59 @@ function WaitlistModal({
       aria-labelledby="waitlist-title"
     >
       <div
-        className="mr-animate-fade fixed inset-0 bg-neutral-950/80 backdrop-blur-sm"
+        className="mr-animate-fade bg-void/80 fixed inset-0 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <div className="mr-animate-rise relative my-auto w-full max-w-lg overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 shadow-2xl shadow-black/80">
-        <div className="flex items-start justify-between gap-4 border-b border-neutral-800 px-6 py-5">
-          <div className="flex items-start gap-3">
-            <div>
-              <h2
-                id="waitlist-title"
-                className="text-[15.5px] font-semibold tracking-tight text-white"
-              >
-                {submitted ? "Request received" : "Early Access Qualification"}
-              </h2>
-              <p className="mt-1 text-[12.5px] text-neutral-500">
-                {submitted
-                  ? "Your details are with the MeshRun onboarding team."
-                  : "Private beta · MeshRun Technologies Inc."}
-              </p>
-            </div>
-          </div>
+      <div className="mr-animate-rise border-hairline bg-surface mr-shadow-modal relative my-auto w-full max-w-md overflow-hidden rounded-2xl border">
+        <div className="border-hairline flex items-start justify-between gap-4 border-b px-6 py-5">
+          <Wordmark className="text-[15px]" />
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-md p-1.5 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-white"
+            data-no-absorb=""
+            className="text-ink-muted hover:bg-raised hover:text-ink rounded-md p-1.5 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {submitted ? (
-          <div className="px-6 py-10 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-400/10">
-              <CheckCircle2 className="h-6 w-6 text-cyan-300" />
-            </span>
-            <p className="mx-auto mt-5 max-w-sm text-[14.5px] leading-relaxed text-neutral-200">
-              Thank you. You&rsquo;re on the list. We&rsquo;ll be reaching out
-              with early access builds shortly.
-            </p>
-            <p className="mx-auto mt-3 max-w-sm text-[12.5px] leading-relaxed text-neutral-500">
-              Questions in the meantime? Reach us directly at{" "}
-              <a
-                href="mailto:contact@meshrun.co"
-                className="text-cyan-300 hover:underline"
-              >
-                contact@meshrun.co
-              </a>
-              .
-            </p>
-            <button
-              type="button"
-              onClick={onClose}
-              className="mt-7 h-11 w-full rounded-xl bg-white text-sm font-semibold text-neutral-950 transition-colors hover:bg-neutral-200"
-            >
-              Close
-            </button>
+        <div className="px-6 py-10 text-center">
+          <div
+            className="text-ink-faint font-mono text-4xl tracking-[-0.18em] select-none"
+            aria-hidden="true"
+          >
+            :(
           </div>
-        ) : (
-          <form onSubmit={submit} className="px-6 py-6">
-            <div>
-              <FieldLabel hint="required">Work email</FieldLabel>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-neutral-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    if (error) setError("");
-                  }}
-                  placeholder="you@studio.com"
-                  autoComplete="email"
-                  aria-invalid={error ? true : undefined}
-                  className={`h-11 w-full rounded-xl border bg-neutral-900/70 pr-4 pl-10 text-sm text-white placeholder:text-neutral-600 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none ${
-                    error
-                      ? "border-red-500/60"
-                      : "border-neutral-800 focus:border-cyan-400/60"
-                  }`}
-                />
-              </div>
-              {error ? (
-                <p className="mt-2 text-[12px] text-red-400">{error}</p>
-              ) : null}
-            </div>
 
-            <div className="mt-6">
-              <FieldLabel hint="select all that apply">
-                Primary software
-              </FieldLabel>
-              <div className="flex flex-wrap gap-2">
-                {SOFTWARE_OPTIONS.map((option) => (
-                  <ChoicePill
-                    key={option}
-                    selected={software.includes(option)}
-                    onClick={() => toggleSoftware(option)}
-                  >
-                    {option}
-                  </ChoicePill>
-                ))}
-              </div>
-            </div>
+          <h2
+            id="waitlist-title"
+            className="text-ink mt-6 text-[17px] font-semibold tracking-tight"
+          >
+            We aren&rsquo;t accepting requests at this time.
+          </h2>
 
-            <div className="mt-6">
-              <FieldLabel>Client hardware</FieldLabel>
-              <div className="relative">
-                <Cpu className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-neutral-500" />
-                <select
-                  value={hardware}
-                  onChange={(event) => setHardware(event.target.value)}
-                  aria-label="Client hardware"
-                  className="h-11 w-full appearance-none rounded-xl border border-neutral-800 bg-neutral-900/70 pr-10 pl-10 text-sm text-white focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none"
-                >
-                  <option value="" disabled>
-                    Select your primary machine
-                  </option>
-                  {HARDWARE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-3.5 h-4 w-4 -translate-y-1/2 text-neutral-500" />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <FieldLabel>Organization size</FieldLabel>
-              <div className="flex flex-wrap gap-2">
-                {TEAM_SIZES.map((option) => (
-                  <ChoicePill
-                    key={option}
-                    selected={teamSize === option}
-                    onClick={() => setTeamSize(option)}
-                  >
-                    {option}
-                  </ChoicePill>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="mt-8 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white text-sm font-semibold text-neutral-950 transition-colors hover:bg-neutral-200"
+          <p className="text-ink-body mx-auto mt-3 max-w-sm text-[13.5px] leading-relaxed">
+            Sorry about that. For more information, please reach out to us at{" "}
+            <a
+              href="mailto:info@meshrun.co"
+              className="text-accent hover:underline"
             >
-              Submit request
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              info@meshrun.co
+            </a>
+            .
+          </p>
 
-            <p className="mt-4 text-center text-[11.5px] leading-relaxed text-neutral-600">
-              We review applications in batches by region and GPU availability.
-              MeshRun is Bring-Your-Own-License; your existing vendor
-              subscription is unaffected.
-            </p>
-          </form>
-        )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-inverse text-inverse-ink mr-glow-hover mt-8 h-11 w-full rounded-xl text-sm font-semibold"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1994,18 +2324,37 @@ function WaitlistModal({
 /*  Page                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/** Long enough for the menu's items to leave and the veil to retract. */
+const MENU_EXIT_MS = 540;
+
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [prefillEmail, setPrefillEmail] = useState("");
   const [navVisible, setNavVisible] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const openModal = useCallback((email = "") => {
-    setPrefillEmail(email);
-    setModalOpen(true);
+  const openModal = useCallback(() => setModalOpen(true), []);
+  const closeModal = useCallback(() => setModalOpen(false), []);
+
+  const openMenu = useCallback(() => {
+    setMenuClosing(false);
+    setMenuOpen(true);
   }, []);
 
-  const closeModal = useCallback(() => setModalOpen(false), []);
+  // Closing plays the opening in reverse, so the menu is kept mounted until the
+  // retraction has finished.
+  const closeMenu = useCallback(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMenuOpen(false);
+      return;
+    }
+    setMenuClosing(true);
+    window.setTimeout(() => {
+      setMenuOpen(false);
+      setMenuClosing(false);
+    }, MENU_EXIT_MS);
+  }, []);
 
   // The bar drops in once the landing screen has been scrolled past. Observing
   // a sentinel avoids a scroll listener firing on every frame.
@@ -2016,7 +2365,9 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          setNavVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+          setNavVisible(
+            !entry.isIntersecting && entry.boundingClientRect.top < 0,
+          );
         }
       },
       { threshold: 0 },
@@ -2029,8 +2380,21 @@ export default function Home() {
   // Note: no overflow clipping on the wrapper below. It would become the fixed
   // header's scroll container; sections that bleed decoration clip it themselves.
   return (
-    <div className="flex min-h-screen w-full flex-col bg-neutral-950">
-      <NavBar onRequestAccess={() => openModal()} visible={navVisible} />
+    <div className="bg-void flex min-h-screen w-full flex-col">
+      <CustomCursor />
+
+      <NavBar
+        onRequestAccess={openModal}
+        visible={navVisible}
+        onOpenMenu={openMenu}
+      />
+
+      <FullscreenMenu
+        open={menuOpen}
+        closing={menuClosing}
+        onClose={closeMenu}
+        onRequestAccess={openModal}
+      />
 
       {/*
         The sentinel sits inside the landing rather than after it, so the bar is
@@ -2047,21 +2411,17 @@ export default function Home() {
 
       <main id="content" className="flex-1 scroll-mt-16">
         <TargetsBand />
-        <ProblemSection />
         <PlatformSection />
-        <PerformanceSection />
+        <CostSection />
         <ArchitectureSection />
-        <PrivacySection />
-        <ByolSection />
-        <PricingSection onRequestAccess={() => openModal()} />
-        <ClosingCta onRequestAccess={() => openModal()} />
+        <YoursSection />
+        <PricingSection onRequestAccess={openModal} />
+        <ClosingCta onRequestAccess={openModal} />
       </main>
 
       <Footer />
 
-      {modalOpen ? (
-        <WaitlistModal initialEmail={prefillEmail} onClose={closeModal} />
-      ) : null}
+      {modalOpen ? <WaitlistModal onClose={closeModal} /> : null}
     </div>
   );
 }

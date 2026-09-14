@@ -1,20 +1,116 @@
 @import "tailwindcss";
 
-/*
- * MeshRun — global theme.
- * The marketing surface is a committed dark-mode product surface, so the
- * palette is defined once rather than branching on prefers-color-scheme.
- */
-:root {
+/* ---------------------------------------------------------------------------
+ * Theme tokens
+ *
+ * Gunmetal ground, Platinum and Soft Linen paper, Sandy Brown accent. Every
+ * surface, line and text step is a token, so the whole page switches by
+ * swapping one attribute on <html> and nothing else has to know.
+ * ------------------------------------------------------------------------- */
+
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
-  --background: #08090b;
-  --foreground: #ededed;
-  --accent: #22d3ee;
+
+  --void: #0e1011;
+  --surface: #141617;
+  --raised: #232829;
+  --plate: #313638;
+
+  --hairline: #343a3c;
+  --hairline-strong: #51595d;
+  --grid-line: rgba(232, 233, 235, 0.05);
+
+  --ink: #f4f5f6;
+  --ink-strong: #cdcfd2;
+  --ink-body: #a6abae;
+  --ink-muted: #929a9d;
+  --ink-faint: #808a8e;
+
+  --accent: #f09d51;
+  --accent-lit: #f8b877;
+  --accent-pale: #fbd4a9;
+  --accent-alt: #e0dfd5;
+  --accent-rgb: 240 157 81;
+
+  --inverse: #e8e9eb;
+  --inverse-ink: #141617;
+  --inverse-hover: #d0d2d6;
+
+  --danger: #f0796a;
+  --live: #79c9a0;
+  --gain: #7fcfa4;
+  --gain-rgb: 127 207 164;
+
+  --shadow-strong: rgba(0, 0, 0, 0.78);
+  --shadow-soft: rgba(0, 0, 0, 0.48);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --void: #e8e9eb;
+  --surface: #f7f7f8;
+  --raised: #e0dfd5;
+  --plate: #dcdcd4;
+
+  --hairline: #cfd0d4;
+  --hairline-strong: #a9abb0;
+  --grid-line: rgba(49, 54, 56, 0.07);
+
+  --ink: #313638;
+  --ink-strong: #383e40;
+  --ink-body: #414749;
+  --ink-muted: #4b5356;
+  --ink-faint: #565e61;
+
+  --accent: #a83a06;
+  --accent-lit: #8c2f04;
+  --accent-pale: #722503;
+  --accent-alt: #c25a12;
+  --accent-rgb: 168 58 6;
+
+  --inverse: #313638;
+  --inverse-ink: #f7f7f8;
+  --inverse-hover: #23282a;
+
+  --danger: #a51d2d;
+  --live: #1c6549;
+  --gain: #1c6549;
+  --gain-rgb: 28 101 73;
+
+  --shadow-strong: rgba(49, 54, 56, 0.24);
+  --shadow-soft: rgba(49, 54, 56, 0.13);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-void: var(--void);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-plate: var(--plate);
+
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-lit: var(--accent-lit);
+  --color-accent-pale: var(--accent-pale);
+  --color-accent-alt: var(--accent-alt);
+
+  --color-inverse: var(--inverse);
+  --color-inverse-ink: var(--inverse-ink);
+  --color-inverse-hover: var(--inverse-hover);
+
+  --color-danger: var(--danger);
+  --color-live: var(--live);
+  --color-gain: var(--gain);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -24,22 +120,41 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--void);
+  color: var(--ink-body);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/* ---------------------------------------------------------------------------
+ * Browser surfaces
+ * ------------------------------------------------------------------------- */
 
 ::selection {
-  background: color-mix(in oklab, var(--accent) 30%, transparent);
-  color: #ffffff;
+  background: rgb(var(--accent-rgb) / 0.3);
+  color: var(--ink);
 }
 
-/* Thin, unobtrusive scrollbars to match the app-like chrome. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+:where(input, textarea) {
+  caret-color: var(--accent);
+}
+
+:where(a) {
+  text-underline-offset: 0.18em;
+}
+
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3f3f46 transparent;
+  scrollbar-color: var(--hairline-strong) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -48,7 +163,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #3f3f46;
+  background-color: var(--hairline-strong);
   border: 3px solid transparent;
   border-radius: 9999px;
   background-clip: content-box;
@@ -57,20 +172,89 @@ body {
 /* Engineering paper-grid backdrop. */
 .mr-grid {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom cursor
+ *
+ * Replaces the pointer on fine-pointer devices only, and never over a text
+ * field, where the caret has to stay findable.
+ * ------------------------------------------------------------------------- */
+
+.mr-cursor-dot,
+.mr-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  border-radius: 9999px;
+  opacity: 0;
+  will-change: transform;
+}
+
+.mr-cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--accent);
+  transition: opacity 220ms ease;
+}
+
+.mr-cursor-ring {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.55);
+  background: rgb(var(--accent-rgb) / 0.06);
+  transition:
+    opacity 220ms ease,
+    width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 320ms ease,
+    border-color 320ms ease;
+}
+
+.mr-cursor-ring[data-hot="true"] {
+  width: 66px;
+  height: 66px;
+  margin: -33px 0 0 -33px;
+  background: rgb(var(--accent-rgb) / 0.14);
+  border-color: rgb(var(--accent-rgb) / 0.85);
+}
+
+@media (pointer: fine) {
+  .mr-cursor-active,
+  .mr-cursor-active a,
+  .mr-cursor-active button,
+  .mr-cursor-active [role="button"],
+  .mr-cursor-active label {
+    cursor: none;
+  }
+
+  .mr-cursor-active input,
+  .mr-cursor-active textarea,
+  .mr-cursor-active select {
+    cursor: auto;
+  }
+}
+
+@media (pointer: coarse) {
+  .mr-cursor-dot,
+  .mr-cursor-ring {
+    display: none;
+  }
 }
 
 /* ---------------------------------------------------------------------------
  * Landing screen
  * ------------------------------------------------------------------------- */
 
-/*
- * Pointer spotlight. The circuit artwork is drawn twice; this masks the bright
- * copy to a soft circle that trails the cursor. --mx/--my are written straight
- * to the element from a rAF loop, so tracking never triggers a React render.
- */
+/* Bright copy of the wireframe field, revealed in a circle around the pointer. */
 .mr-spotlight {
   -webkit-mask-image: radial-gradient(
     circle 30vmax at var(--mx, 50%) var(--my, 42%),
@@ -86,32 +270,29 @@ body {
   );
 }
 
-/*
- * Fades the circuit artwork out behind the headline. Masking the art keeps the
- * plate reading as grey, where a dark scrim would just push it back to black.
- */
+/* Fades the field out behind the headline so the plate stays readable. */
 .mr-clear-center {
-  -webkit-mask-image: radial-gradient(
-    ellipse 46% 44% at 50% 50%,
-    transparent 0%,
-    rgba(0, 0, 0, 0.22) 58%,
-    #000 88%
-  );
-  mask-image: radial-gradient(
-    ellipse 46% 44% at 50% 50%,
-    transparent 0%,
-    rgba(0, 0, 0, 0.22) 58%,
-    #000 88%
-  );
+  /* Two mask layers, added together: the lens first, then the clearing. */
+  mask-image:
+    radial-gradient(
+      circle var(--lens-r, 0px) at var(--lens-x, 50%) var(--lens-y, 50%),
+      #000 0%,
+      rgba(0, 0, 0, 0.6) 52%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 46% 38% at 50% 47%,
+      transparent 0%,
+      transparent 30%,
+      rgba(0, 0, 0, 0.05) 52%,
+      rgba(0, 0, 0, 0.3) 74%,
+      rgba(0, 0, 0, 0.68) 88%,
+      #000 100%
+    );
+  mask-composite: add;
 }
 
-/* Parallax layers driven by the same rAF loop. */
-.mr-parallax {
-  translate: var(--px, 0px) var(--py, 0px);
-  will-change: translate;
-}
-
-/* Staged entrance for the landing copy. */
+/* Staged entrance for the landing copy, held until the field has settled. */
 @keyframes mr-enter {
   from {
     opacity: 0;
@@ -129,6 +310,22 @@ body {
   animation: mr-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Typing caret for the product cycler. */
+@keyframes mr-caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.1;
+  }
+}
+
+.mr-caret {
+  animation: mr-caret 1.05s steps(1, end) infinite;
+}
+
 /* Scroll cue: a slow bob with a glow that breathes in sync. */
 @keyframes mr-bob {
   0%,
@@ -144,20 +341,83 @@ body {
   animation: mr-bob 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-@keyframes mr-cue-glow {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.88);
+/* ---------------------------------------------------------------------------
+ * Full-screen menu
+ * ------------------------------------------------------------------------- */
+
+@keyframes mr-veil {
+  from {
+    clip-path: inset(0 0 100% 0);
   }
-  50% {
-    opacity: 0.55;
-    transform: scale(1.15);
+  to {
+    clip-path: inset(0 0 0 0);
   }
 }
 
-.mr-animate-cue-glow {
-  animation: mr-cue-glow 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+.mr-veil {
+  animation: mr-veil 560ms cubic-bezier(0.76, 0, 0.24, 1) both;
+}
+
+@keyframes mr-veil-item {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mr-veil-item {
+  animation: mr-veil-item 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Closing rewinds it: the rows lift away first, then the sheet retracts. */
+@keyframes mr-veil-out {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+.mr-veil-out {
+  animation: mr-veil-out 420ms cubic-bezier(0.76, 0, 0.24, 1) 110ms both;
+}
+
+@keyframes mr-veil-item-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+}
+
+.mr-veil-item-out {
+  animation: mr-veil-item-out 240ms cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+/* ---------------------------------------------------------------------------
+ * Step connectors
+ *
+ * Each step draws the segment across to the one after it. Stacked on a narrow
+ * screen the steps read in order on their own and get no line.
+ * ------------------------------------------------------------------------- */
+
+.mr-step-across {
+  width: calc(100% + var(--step-gap));
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgb(var(--accent-rgb) / 0.4) 26%,
+    rgb(var(--accent-rgb) / 0.4) 74%,
+    transparent
+  );
 }
 
 /* ---------------------------------------------------------------------------
@@ -166,13 +426,13 @@ body {
 
 @keyframes mr-pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.5);
   }
   70% {
-    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0);
+    box-shadow: 0 0 0 6px rgb(var(--accent-rgb) / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0);
   }
 }
 
@@ -206,6 +466,207 @@ body {
 
 .mr-animate-fade {
   animation: mr-fade 0.18s ease-out both;
+}
+
+/* Theme-aware depth, so a modal does not punch a black hole in a light page. */
+.mr-shadow-modal {
+  box-shadow: 0 25px 50px -12px var(--shadow-strong);
+}
+
+.mr-shadow-lift {
+  box-shadow: 0 12px 28px -12px var(--shadow-soft);
+}
+
+.mr-glow-control {
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mr-glow-control:hover {
+  box-shadow: 0 0 24px -6px rgb(var(--accent-rgb) / 0.6);
+}
+
+.mr-glow-commit {
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mr-glow-commit:hover {
+  box-shadow: 0 0 28px -6px rgb(var(--accent-rgb) / 0.65);
+}
+
+.mr-glow-surface {
+  box-shadow: 0 0 60px -24px rgb(var(--accent-rgb) / 0.5);
+}
+
+/* Product identity colours, stepped down for legibility on a light sheet. */
+.mr-product {
+  color: var(--pc);
+}
+
+[data-theme="light"] .mr-product {
+  color: var(--pcl);
+}
+
+/* The theme toggle shows only the icon for the mode you would switch to. */
+[data-theme="light"] .mr-when-dark {
+  display: none;
+}
+
+:root:not([data-theme="light"]) .mr-when-light {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Interaction
+ * ------------------------------------------------------------------------- */
+
+/*
+ * The grid lights up under the pointer. Same 64px cell as .mr-grid and the same
+ * element box, so the glowing lines sit exactly on the quiet ones.
+ */
+.mr-grid-glow {
+  background-image:
+    linear-gradient(
+      to right,
+      rgb(var(--accent-rgb) / 0.7) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(var(--accent-rgb) / 0.7) 1px,
+      transparent 1px
+    );
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(
+    circle 190px at var(--gx, -999px) var(--gy, -999px),
+    #000 0%,
+    rgba(0, 0, 0, 0.4) 45%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    circle 190px at var(--gx, -999px) var(--gy, -999px),
+    #000 0%,
+    rgba(0, 0, 0, 0.4) 45%,
+    transparent 74%
+  );
+}
+
+/*
+ * A card that rises and inverts under the pointer. !important is deliberate:
+ * this state has to beat the utility hover classes already on the element, and
+ * both sides are single-class selectors, so specificity alone cannot settle it.
+ */
+.mr-lift {
+  transition:
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mr-lift:hover {
+  transform: translateY(-6px);
+  background-color: var(--raised);
+  border-color: rgb(var(--accent-rgb) / 0.45);
+  box-shadow:
+    0 18px 40px -22px var(--shadow-strong),
+    0 0 32px -14px rgb(var(--accent-rgb) / 0.5);
+}
+
+/*
+ * Pricing and controls glow rather than invert: the card keeps its size and
+ * colour, and the accent arrives behind it.
+ */
+.mr-glow-hover {
+  transition:
+    border-color 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mr-glow-hover:hover {
+  border-color: rgb(var(--accent-rgb) / 0.55);
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-rgb) / 0.25),
+    0 0 46px -10px rgb(var(--accent-rgb) / 0.45);
+}
+
+/* The recommended tier carries a quieter version of the same glow at rest. */
+.mr-glow-featured {
+  border-color: rgb(var(--accent-rgb) / 0.75);
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-rgb) / 0.2),
+    0 0 54px -18px rgb(var(--accent-rgb) / 0.4);
+}
+
+/* The theme icon spins down to a point, swaps, and opens back out. */
+@keyframes mr-swap {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  42% {
+    transform: rotate(150deg) scale(0.15);
+  }
+  58% {
+    transform: rotate(210deg) scale(0.15);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.mr-swap {
+  animation: mr-swap 620ms cubic-bezier(0.55, 0, 0.3, 1);
+}
+
+/* The cursor is swallowed by the control and the control takes its colour. */
+.mr-absorbed,
+.mr-absorbed:hover {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--inverse-ink) !important;
+  box-shadow: 0 0 40px -8px rgb(var(--accent-rgb) / 0.6) !important;
+}
+
+.mr-cursor-ring[data-absorbed="true"] {
+  background: rgb(var(--accent-rgb) / 0.18);
+  border-color: transparent;
+  transition:
+    width 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 240ms ease,
+    border-color 240ms ease;
+}
+
+/* Lines plot themselves in, the way a drawing arrives off a plotter. */
+@keyframes mr-plot {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.mr-plot {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: mr-plot 1100ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+/* The product pill swapping its contents. */
+@keyframes mr-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.mr-pill-in {
+  animation: mr-pill-in 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /*

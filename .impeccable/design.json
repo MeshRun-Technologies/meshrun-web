@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-13T00:00:00.000Z",
+  "title": "Design System: MeshRun",
+  "extensions": {
+    "colorMeta": {
+      "drafting-cyan": {
+        "role": "primary",
+        "displayName": "Drafting Cyan",
+        "canonical": "#00d2ef",
+        "tonalRamp": [
+          "oklch(15% 0.045 208)",
+          "oklch(26% 0.072 208)",
+          "oklch(38% 0.098 208)",
+          "oklch(50% 0.118 208)",
+          "oklch(62% 0.130 208)",
+          "oklch(76.6% 0.135 208)",
+          "oklch(86% 0.096 208)",
+          "oklch(95% 0.040 208)"
+        ]
+      },
+      "teal-terminus": {
+        "role": "secondary",
+        "displayName": "Teal Terminus",
+        "canonical": "#46ecd5",
+        "tonalRamp": [
+          "oklch(15% 0.040 178)",
+          "oklch(26% 0.065 178)",
+          "oklch(38% 0.088 178)",
+          "oklch(50% 0.105 178)",
+          "oklch(62% 0.118 178)",
+          "oklch(84.9% 0.126 178)",
+          "oklch(90% 0.086 178)",
+          "oklch(95% 0.038 178)"
+        ]
+      },
+      "graphite-base": {
+        "role": "neutral",
+        "displayName": "Graphite Base",
+        "canonical": "#0a0a0a",
+        "tonalRamp": [
+          "oklch(2.8% 0.002 250)",
+          "oklch(7.8% 0.003 250)",
+          "oklch(15.2% 0.003 250)",
+          "oklch(27% 0.004 250)",
+          "oklch(43% 0.008 275)",
+          "oklch(56% 0.012 275)",
+          "oklch(66% 0.002 250)",
+          "oklch(95% 0.001 250)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#262626",
+        "tonalRamp": [
+          "oklch(2.8% 0.002 250)",
+          "oklch(7.8% 0.003 250)",
+          "oklch(15.2% 0.003 250)",
+          "oklch(21% 0.003 250)",
+          "oklch(27% 0.004 250)",
+          "oklch(38% 0.005 250)",
+          "oklch(52% 0.006 250)",
+          "oklch(70% 0.004 250)"
+        ]
+      },
+      "text-body": {
+        "role": "neutral",
+        "displayName": "Text Body",
+        "canonical": "#a1a1a1",
+        "tonalRamp": [
+          "oklch(20% 0 0)",
+          "oklch(31% 0 0)",
+          "oklch(42% 0 0)",
+          "oklch(52% 0 0)",
+          "oklch(66.1% 0 0)",
+          "oklch(78% 0 0)",
+          "oklch(88% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "text-tertiary": {
+        "role": "neutral",
+        "displayName": "Text Tertiary",
+        "canonical": "#7c7c85",
+        "tonalRamp": [
+          "oklch(18% 0.008 275)",
+          "oklch(28% 0.010 275)",
+          "oklch(38% 0.011 275)",
+          "oklch(47% 0.012 275)",
+          "oklch(56% 0.012 275)",
+          "oklch(62% 0.012 275)",
+          "oklch(78% 0.010 275)",
+          "oklch(92% 0.006 275)"
+        ]
+      },
+      "signal-live": {
+        "role": "tertiary",
+        "displayName": "Signal Live",
+        "canonical": "#00d294",
+        "tonalRamp": [
+          "oklch(15% 0.050 165)",
+          "oklch(26% 0.080 165)",
+          "oklch(38% 0.108 165)",
+          "oklch(50% 0.130 165)",
+          "oklch(62% 0.145 165)",
+          "oklch(75.1% 0.152 165)",
+          "oklch(86% 0.100 165)",
+          "oklch(95% 0.042 165)"
+        ]
+      },
+      "signal-error": {
+        "role": "tertiary",
+        "displayName": "Signal Error",
+        "canonical": "#ff6568",
+        "tonalRamp": [
+          "oklch(18% 0.060 22)",
+          "oklch(28% 0.098 22)",
+          "oklch(38% 0.140 22)",
+          "oklch(48% 0.175 22)",
+          "oklch(56% 0.195 22)",
+          "oklch(63.7% 0.185 22)",
+          "oklch(80% 0.115 22)",
+          "oklch(93% 0.048 22)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The landing claim only. One per page, maximum. Tracking pulled to -0.035em so the line reads as a machined unit."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section openers. Always text-wrap: balance."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and component headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running prose. Measure capped independently of the container; leads at max-w-3xl."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Tracked uppercase mono for field labels, spec keys and column heads. Annotation, never content."
+      },
+      "readout": {
+        "displayName": "Readout",
+        "purpose": "Measured values, units, file paths and identifiers. Carries tabular-nums wherever columnar."
+      }
+    },
+    "shadows": [
+      {
+        "name": "occlusion",
+        "value": "0 25px 50px -12px rgba(0,0,0,0.8)",
+        "purpose": "Modal surface only, paired with a blurred scrim. The one genuine occlusion in the system."
+      },
+      {
+        "name": "emission-control",
+        "value": "0 0 24px -6px rgba(34,211,238,0.6)",
+        "purpose": "Primary button hover in the navigation bar. The control emits rather than lifting."
+      },
+      {
+        "name": "emission-commitment",
+        "value": "0 0 28px -6px rgba(34,211,238,0.65)",
+        "purpose": "Featured pricing tier button on hover."
+      },
+      {
+        "name": "emission-surface",
+        "value": "0 0 60px -24px rgba(34,211,238,0.5)",
+        "purpose": "The featured pricing card at rest. The only resting glow permitted; it marks a recommendation."
+      },
+      {
+        "name": "hairline-ring",
+        "value": "inset 0 0 0 1px rgba(255,255,255,0.05)",
+        "purpose": "Optional inner edge on a floating surface, layered under the occlusion shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-signature",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The house ease. Exponential out: arrives fast, settles slow. Entrances, nav reveal, product cycler, underline wipes."
+      },
+      {
+        "name": "ease-breathe",
+        "value": "cubic-bezier(0.45, 0, 0.55, 1)",
+        "purpose": "Symmetric in-out for the two looping elements only: the scroll cue bob and its glow."
+      },
+      {
+        "name": "duration-state",
+        "value": "200ms",
+        "purpose": "Colour and shadow changes on hover."
+      },
+      {
+        "name": "duration-gesture",
+        "value": "300ms",
+        "purpose": "Underline wipes, scale nudges, icon translations."
+      },
+      {
+        "name": "duration-reveal",
+        "value": "500ms",
+        "purpose": "The navigation bar translating into place."
+      },
+      {
+        "name": "duration-morph",
+        "value": "650ms",
+        "purpose": "The product cycler's measured width transition, so surrounding words glide rather than snap."
+      },
+      {
+        "name": "duration-entrance",
+        "value": "900ms",
+        "purpose": "Landing copy entrance: opacity, 16px rise and an 8px blur resolving together, staggered 120/300/560ms."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The loudest object on a dark page, made loud by inversion rather than by accent colour.",
+      "html": "<button class=\"ds-btn-primary\">Request Early Access<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M12 5l7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; background: #ffffff; color: #0a0a0a; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: background 200ms cubic-bezier(0.22,1,0.36,1), box-shadow 200ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-primary svg { width: 16px; height: 16px; transition: transform 200ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-primary:hover { background: #e5e5e5; box-shadow: 0 0 24px -6px rgba(34,211,238,0.6); } .ds-btn-primary:hover svg { transform: translateX(2px); } .ds-btn-primary:focus-visible { outline: 2px solid #00d2ef; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action. A hairline drawn on a raised grey; the border wakes on hover.",
+      "html": "<button class=\"ds-btn-ghost\">contact@meshrun.co</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; background: rgba(23,23,23,0.6); color: #e5e5e5; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; border: 1px solid #262626; border-radius: 12px; cursor: pointer; transition: border-color 200ms cubic-bezier(0.22,1,0.36,1), background 200ms cubic-bezier(0.22,1,0.36,1), color 200ms cubic-bezier(0.22,1,0.36,1); } .ds-btn-ghost:hover { border-color: #404040; background: #171717; color: #ffffff; } .ds-btn-ghost:focus-visible { outline: 2px solid #00d2ef; outline-offset: 2px; }"
+    },
+    {
+      "name": "Navigation Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Text only at rest; a cyan-to-teal hairline wipes in from the left on hover. Never a background fill.",
+      "html": "<a class=\"ds-nav-link\" href=\"#\">Performance</a>",
+      "css": ".ds-nav-link { position: relative; display: inline-block; padding: 8px 12px; color: #a1a1a1; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; text-decoration: none; border-radius: 6px; transition: color 200ms cubic-bezier(0.22,1,0.36,1); } .ds-nav-link::after { content: \"\"; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 1px; background: linear-gradient(to right, #00d2ef, #46ecd5); transform: scaleX(0); transform-origin: left; transition: transform 300ms cubic-bezier(0.22,1,0.36,1); } .ds-nav-link:hover { color: #ffffff; } .ds-nav-link:hover::after { transform: scaleX(1); } .ds-nav-link:focus-visible { outline: 2px solid #00d2ef; outline-offset: 2px; }"
+    },
+    {
+      "name": "Choice Chip",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "Selection control for the qualification form. A filled cyan check when on, a hollow hairline ring when off.",
+      "html": "<div style=\"display:flex;gap:8px;flex-wrap:wrap\"><button class=\"ds-chip ds-chip--on\" aria-pressed=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>Fusion</button><button class=\"ds-chip\" aria-pressed=\"false\"><span class=\"ds-chip__ring\"></span>Inventor</button></div>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(23,23,23,0.6); color: #a1a1a1; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; font-weight: 500; border: 1px solid #262626; border-radius: 8px; cursor: pointer; transition: border-color 200ms cubic-bezier(0.22,1,0.36,1), color 200ms cubic-bezier(0.22,1,0.36,1); } .ds-chip svg { width: 14px; height: 14px; flex-shrink: 0; } .ds-chip__ring { width: 14px; height: 14px; flex-shrink: 0; border: 1px solid #404040; border-radius: 9999px; } .ds-chip:hover { border-color: #404040; color: #e5e5e5; } .ds-chip--on { border-color: rgba(0,210,239,0.5); background: rgba(0,210,239,0.1); color: #a2f4fd; } .ds-chip:focus-visible { outline: 2px solid #00d2ef; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Leading icon, hairline border, and a cyan bloom on focus. The one component that overrides the global focus ring.",
+      "html": "<div class=\"ds-field\"><svg class=\"ds-field__icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m22 7-10 5L2 7\"/></svg><input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\" aria-label=\"Email\"></div>",
+      "css": ".ds-field { position: relative; display: block; } .ds-field__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #8d8d96; pointer-events: none; } .ds-input { width: 100%; height: 44px; padding: 0 16px 0 40px; background: rgba(23,23,23,0.7); color: #ffffff; caret-color: #00d2ef; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 14px; border: 1px solid #262626; border-radius: 12px; transition: border-color 200ms cubic-bezier(0.22,1,0.36,1), box-shadow 200ms cubic-bezier(0.22,1,0.36,1); } .ds-input::placeholder { color: #7c7c85; } .ds-input:focus { outline: none; border-color: rgba(0,210,239,0.6); box-shadow: 0 0 0 2px rgba(0,210,239,0.2); }"
+    },
+    {
+      "name": "Hairline Grid",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The signature container. Structure comes from 1px gaps over a hairline ground; no child draws its own border.",
+      "html": "<div class=\"ds-grid\"><div class=\"ds-grid__cell\"><span class=\"ds-well\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2\" y=\"3\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 21h8m-4-4v4\"/></svg></span><div class=\"ds-grid__label\">Display</div><div class=\"ds-grid__value\">120 FPS at 2K</div><p class=\"ds-grid__body\">Keep your models and drawings crisp with a smooth experience.</p></div><div class=\"ds-grid__cell\"><span class=\"ds-well\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z\"/><path d=\"M12 2v3m0 14v3M2 12h3m14 0h3\"/></svg></span><div class=\"ds-grid__label\">Pipeline</div><div class=\"ds-grid__value\">20–40ms regional</div><p class=\"ds-grid__body\">End to end from input to presented frame.</p></div></div>",
+      "css": ".ds-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #262626; border: 1px solid #262626; border-radius: 16px; overflow: hidden; } .ds-grid__cell { background: #0a0a0a; padding: 24px; } .ds-well { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid rgba(0,210,239,0.25); background: rgba(0,210,239,0.1); border-radius: 8px; color: #53eafd; } .ds-well svg { width: 16px; height: 16px; } .ds-grid__label { margin-top: 16px; font-family: \"Geist Mono\", ui-monospace, monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8d8d96; } .ds-grid__value { margin-top: 6px; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: #ffffff; } .ds-grid__body { margin: 10px 0 0; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; line-height: 1.6; color: #8d8d96; }"
+    },
+    {
+      "name": "Spec Row",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "The tabular readout that carries every technical claim: tracked label left, monospace value right, hairline rule between.",
+      "html": "<dl class=\"ds-spec\"><div class=\"ds-spec__row\"><dt>Chroma subsampling</dt><dd>4:4:4</dd></div><div class=\"ds-spec__row\"><dt>Sustained frame rate</dt><dd>120 FPS at 2K</dd></div><div class=\"ds-spec__row\"><dt>Instance class</dt><dd>NVIDIA RTX 4000 Ada</dd></div></dl>",
+      "css": ".ds-spec { margin: 0; border-top: 1px solid #262626; } .ds-spec__row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #262626; } .ds-spec dt { flex-shrink: 0; font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px; color: #8d8d96; } .ds-spec dd { margin: 0; text-align: right; font-family: \"Geist Mono\", ui-monospace, monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; color: #e5e5e5; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "chip-unselected",
+      "description": "Availability marker. The only looping animation in the system besides the scroll cue.",
+      "html": "<span class=\"ds-pill\"><span class=\"ds-pill__dot\"></span>Private beta · Early access opening soon</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(23,23,23,0.7); border: 1px solid #262626; border-radius: 9999px; font-family: \"Geist Mono\", ui-monospace, monospace; font-size: 11px; color: #d4d4d4; } .ds-pill__dot { width: 6px; height: 6px; border-radius: 9999px; background: #00d2ef; animation: ds-pulse 2.4s ease-out infinite; } @keyframes ds-pulse { 0% { box-shadow: 0 0 0 0 rgba(0,210,239,0.5); } 70% { box-shadow: 0 0 0 6px rgba(0,210,239,0); } 100% { box-shadow: 0 0 0 0 rgba(0,210,239,0); } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Drafting Table at Night",
+    "overview": "The room is dark and the sheet is not white — it is graphite under a lamp. Everything on this surface is drawn rather than painted: hairline rules, plotted grids, linework that could have come off a pen plotter. Weight comes from line and tone, never from fill or ornament. The page behaves like a technical document that happens to be lit from within.\n\nExactly one thing on the sheet carries current. Drafting Cyan is the live trace — it marks what is measured, what is selected, and what will respond to a click. It is never a mood, a gradient, or a way to make a section feel important. When a reader's eye is pulled to cyan, something is actually happening there.\n\nDensity is respect. The audience arrives to verify a claim, so type runs small and tight, numbers are monospaced so they align down a column, and a spec table is preferred over a card whenever the content is genuinely tabular. Whitespace separates ideas; it is never used to make thin content look considered.",
+    "keyCharacteristics": [
+      "Graphite tonal layering (#0a0a0a → #171717) instead of shadow for structure",
+      "Hairline 1px borders as the primary drawing tool, including 1px grid gaps between cells",
+      "A single accent, used as signal rather than decoration",
+      "Monospace reserved for measurement, identifiers, and labels — never for atmosphere",
+      "Small, tight, dense type with generous separation between groups",
+      "Motion that arrives and settles; nothing loops for attention"
+    ],
+    "rules": [
+      {
+        "name": "The Live Trace Rule",
+        "body": "Drafting Cyan means current is flowing here: it is measured, selected, focused, or clickable. If an element is cyan and none of those are true, the colour is wrong — not the element.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Greys Rule",
+        "body": "Any new surface must be Graphite Base, Graphite Raised, or transparent. A fourth grey needs a reason that the existing three demonstrably cannot serve.",
+        "section": "colors"
+      },
+      {
+        "name": "The 4.8 Floor Rule",
+        "body": "No text below #7c7c85. Tailwind's stock neutral-500 and neutral-600 measure 4.18:1 and 2.53:1 on this ground and are overridden in globals.css precisely so the floor cannot be breached by reaching for a default.",
+        "section": "colors"
+      },
+      {
+        "name": "The Quotation Rule",
+        "body": "Product marks are quotations of someone else's identity. They appear only where a specific product is named, never as decoration, never in a chart, never as a UI accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measurement Rule",
+        "body": "Monospace is for things that were measured, identified, or typed at a machine: figures, units, file paths, spec keys, codec names. It is never a costume for making prose look technical.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Any number that sits in a column, or that updates in place, carries tabular-nums. Figures that shift width while changing are a defect.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Claim Rule",
+        "body": "Display type states a claim, never a category. If the line could head a section on any competitor's site, it is not display copy.",
+        "section": "typography"
+      },
+      {
+        "name": "The Gap-As-Rule Rule",
+        "body": "In a multi-cell block, structure comes from 1px gaps over a Hairline ground — never from per-card borders, and never from shadows.",
+        "section": "layout"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "The container caps the layout; it never sets the reading measure. Prose gets its own max-width every time.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "body": "Surfaces do not cast at rest. The single exception is the recommended pricing tier, where the resting glow is the recommendation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Emit, Don't Lift Rule",
+        "body": "Interactive elements respond by glowing, not by translating upward. Nothing in this system moves toward the reader on hover.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Pixel Rule",
+        "body": "Every border in this system is 1px. A heavier line means a different colour, never a thicker stroke.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do build structure from 1px Hairline (#262626) borders and 1px grid gaps. The Gap-As-Rule Rule is the house style.",
+      "Do keep every surface on one of the three greys — Graphite Base, Graphite Raised, or transparent.",
+      "Do reserve Drafting Cyan for measured, selected, focused, or clickable things. The Live Trace Rule is the single most important constraint in this system.",
+      "Do set measured values in Geist Mono with tabular-nums, and label them in tracked uppercase mono.",
+      "Do give every interactive element the 2px Drafting Cyan focus ring at 2px offset; inputs may override it with their own bloom.",
+      "Do keep text at or above #7c7c85 (4.8:1). Reach for the overridden neutral-500/600, never a raw Tailwind default below them.",
+      "Do use 100svh for full-height screens so mobile chrome cannot crop content.",
+      "Do animate on cubic-bezier(0.22, 1, 0.36, 1) at 200–650ms — arrive fast, settle slow."
+    ],
+    "donts": [
+      "Don't drift toward generic dark SaaS: no purple-to-blue gradients, no glassmorphism panels, no aurora blob behind the hero, no cards floating on a void.",
+      "Don't drift toward a gaming or RGB aesthetic: no multi-colour neon, no chrome, no glow for its own sake. GPUs are the subject, not the styling brief.",
+      "Don't drift toward enterprise blue corporate: no stock photography, no safe navy, no rounded friendly illustration, no trust badges.",
+      "Don't drift toward consumer-app playfulness: no pastel fills, no mascots, no bouncy spring motion, no oversized rounded shapes.",
+      "Don't add a shadow to a resting surface. The featured pricing card is the one sanctioned exception and it earns it by meaning \"recommended\".",
+      "Don't use a border heavier than 1px. Express weight through colour instead.",
+      "Don't put an eyebrow or kicker above a heading, or number sections 01 / 02 / 03 unless the sequence is genuinely load-bearing. Both were removed from this build deliberately.",
+      "Don't use monospace to make prose look technical. It marks measurement, not mood.",
+      "Don't reuse the CAD product colours as UI accents — they are quotations of other companies' identities.",
+      "Don't simulate product UI, invent telemetry, or imply evidence that does not exist. This is a brand-level constraint from PRODUCT.md and it outranks any visual goal."
+    ]
+  }
+}
