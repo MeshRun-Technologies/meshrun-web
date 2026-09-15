@@ -1921,6 +1921,30 @@ const TRADES = [
 ];
 
 const CostSection = memo(function CostSection() {
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // No pointer means no hover, so on a phone the rows turn over as they pass
+  // the middle of the screen instead of waiting for one that never comes.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    if (window.matchMedia("(hover: hover)").matches) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const row = entry.target as HTMLElement;
+          row.dataset.flip = entry.isIntersecting ? "on" : "off";
+        }
+      },
+      // A band across the middle of the viewport, one row deep.
+      { rootMargin: "-46% 0px -46% 0px" },
+    );
+
+    for (const row of list.querySelectorAll("li")) observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="how"
@@ -1931,23 +1955,27 @@ const CostSection = memo(function CostSection() {
 
         {/* Pulled wide so the hover tint has a margin of its own while the rows
             stay aligned with everything else on the page. */}
-        <ul className="border-hairline mt-12 -mx-3 border-t sm:-mx-4">
+        <ul
+          ref={listRef}
+          className="border-hairline mt-12 -mx-3 border-t sm:-mx-4"
+        >
           {TRADES.map((trade) => (
             <li
               key={trade.cost}
-              className="group border-hairline hover:bg-gain/5 border-b transition-colors duration-500"
+              data-flip="off"
+              className="group border-hairline hover:bg-gain/5 data-[flip=on]:bg-gain/5 border-b transition-colors duration-500"
             >
               <div className="flex items-center gap-4 px-3 py-5 sm:gap-5 sm:px-4">
                 <span className="relative inline-grid h-5 w-5 shrink-0 place-items-center">
-                  <X className="text-ink-faint col-start-1 row-start-1 h-4 w-4 transition-all duration-500 group-hover:scale-75 group-hover:opacity-0" />
-                  <CheckCircle2 className="text-gain col-start-1 row-start-1 h-[18px] w-[18px] scale-75 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100" />
+                  <X className="text-ink-faint col-start-1 row-start-1 h-4 w-4 transition-all duration-500 group-hover:scale-75 group-hover:opacity-0 group-data-[flip=on]:scale-75 group-data-[flip=on]:opacity-0" />
+                  <CheckCircle2 className="text-gain col-start-1 row-start-1 h-[18px] w-[18px] scale-75 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 group-data-[flip=on]:scale-100 group-data-[flip=on]:opacity-100" />
                 </span>
 
                 <span className="grid flex-1">
-                  <span className="text-ink-muted col-start-1 row-start-1 text-[15px] leading-relaxed transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-0 sm:text-[17px]">
+                  <span className="text-ink-muted col-start-1 row-start-1 text-[15px] leading-relaxed transition-all duration-500 group-hover:-translate-y-1 group-hover:opacity-0 group-data-[flip=on]:-translate-y-1 group-data-[flip=on]:opacity-0 sm:text-[17px]">
                     {trade.cost}
                   </span>
-                  <span className="text-gain col-start-1 row-start-1 translate-y-1 text-[15px] leading-relaxed font-medium opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 sm:text-[17px]">
+                  <span className="text-gain col-start-1 row-start-1 translate-y-1 text-[15px] leading-relaxed font-medium opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-data-[flip=on]:translate-y-0 group-data-[flip=on]:opacity-100 sm:text-[17px]">
                     {trade.gain}
                   </span>
                 </span>
